@@ -5,64 +5,53 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.util.Date;
-
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
- * 用户表
- * @TableName user
+ * 游戏表
+ * @TableName game
  */
-@TableName(value ="user")
+@TableName(value ="game")
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class User {
+public class Game {
     /**
-     * 用户ID
+     * 游戏ID
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
-     * 用户名
+     * 游戏名称
      */
-    @TableField(value = "username")
-    private String username;
+    @TableField(value = "name")
+    private String name;
 
     /**
-     * 密码
+     * 游戏描述
      */
-    @TableField(value = "password")
-    private String password;
+    @TableField(value = "description")
+    private String description;
 
     /**
-     * 昵称
+     * 游戏图标
      */
-    @TableField(value = "nickname")
-    private String nickname;
+    @TableField(value = "icon")
+    private String icon;
 
     /**
-     * 邮箱
+     * 游戏类型ID
      */
-    @TableField(value = "email")
-    private String email;
+    @TableField(value = "type_id")
+    private Long typeId;
 
     /**
-     * 手机号码
+     * 游戏平台ID
      */
-    @TableField(value = "phone")
-    private String phone;
+    @TableField(value = "platform_id")
+    private Long platformId;
 
     /**
-     * 用户头像
-     */
-    @TableField(value = "avatar")
-    private String avatar;
-
-    /**
-     * 状态：0正常 1禁用
+     * 状态：0正常 1下架
      */
     @TableField(value = "status")
     private Integer status;
@@ -108,14 +97,13 @@ public class User {
         if (getClass() != that.getClass()) {
             return false;
         }
-        User other = (User) that;
+        Game other = (Game) that;
         return (this.getId() == null ? other.getId() == null : this.getId().equals(other.getId()))
-            && (this.getUsername() == null ? other.getUsername() == null : this.getUsername().equals(other.getUsername()))
-            && (this.getPassword() == null ? other.getPassword() == null : this.getPassword().equals(other.getPassword()))
-            && (this.getNickname() == null ? other.getNickname() == null : this.getNickname().equals(other.getNickname()))
-            && (this.getEmail() == null ? other.getEmail() == null : this.getEmail().equals(other.getEmail()))
-            && (this.getPhone() == null ? other.getPhone() == null : this.getPhone().equals(other.getPhone()))
-            && (this.getAvatar() == null ? other.getAvatar() == null : this.getAvatar().equals(other.getAvatar()))
+            && (this.getName() == null ? other.getName() == null : this.getName().equals(other.getName()))
+            && (this.getDescription() == null ? other.getDescription() == null : this.getDescription().equals(other.getDescription()))
+            && (this.getIcon() == null ? other.getIcon() == null : this.getIcon().equals(other.getIcon()))
+            && (this.getTypeId() == null ? other.getTypeId() == null : this.getTypeId().equals(other.getTypeId()))
+            && (this.getPlatformId() == null ? other.getPlatformId() == null : this.getPlatformId().equals(other.getPlatformId()))
             && (this.getStatus() == null ? other.getStatus() == null : this.getStatus().equals(other.getStatus()))
             && (this.getCreateBy() == null ? other.getCreateBy() == null : this.getCreateBy().equals(other.getCreateBy()))
             && (this.getUpdateBy() == null ? other.getUpdateBy() == null : this.getUpdateBy().equals(other.getUpdateBy()))
@@ -129,12 +117,11 @@ public class User {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
-        result = prime * result + ((getUsername() == null) ? 0 : getUsername().hashCode());
-        result = prime * result + ((getPassword() == null) ? 0 : getPassword().hashCode());
-        result = prime * result + ((getNickname() == null) ? 0 : getNickname().hashCode());
-        result = prime * result + ((getEmail() == null) ? 0 : getEmail().hashCode());
-        result = prime * result + ((getPhone() == null) ? 0 : getPhone().hashCode());
-        result = prime * result + ((getAvatar() == null) ? 0 : getAvatar().hashCode());
+        result = prime * result + ((getName() == null) ? 0 : getName().hashCode());
+        result = prime * result + ((getDescription() == null) ? 0 : getDescription().hashCode());
+        result = prime * result + ((getIcon() == null) ? 0 : getIcon().hashCode());
+        result = prime * result + ((getTypeId() == null) ? 0 : getTypeId().hashCode());
+        result = prime * result + ((getPlatformId() == null) ? 0 : getPlatformId().hashCode());
         result = prime * result + ((getStatus() == null) ? 0 : getStatus().hashCode());
         result = prime * result + ((getCreateBy() == null) ? 0 : getCreateBy().hashCode());
         result = prime * result + ((getUpdateBy() == null) ? 0 : getUpdateBy().hashCode());
@@ -151,12 +138,11 @@ public class User {
         sb.append(" [");
         sb.append("Hash = ").append(hashCode());
         sb.append(", id=").append(id);
-        sb.append(", username=").append(username);
-        sb.append(", password=").append(password);
-        sb.append(", nickname=").append(nickname);
-        sb.append(", email=").append(email);
-        sb.append(", phone=").append(phone);
-        sb.append(", avatar=").append(avatar);
+        sb.append(", name=").append(name);
+        sb.append(", description=").append(description);
+        sb.append(", icon=").append(icon);
+        sb.append(", typeId=").append(typeId);
+        sb.append(", platformId=").append(platformId);
         sb.append(", status=").append(status);
         sb.append(", createBy=").append(createBy);
         sb.append(", updateBy=").append(updateBy);

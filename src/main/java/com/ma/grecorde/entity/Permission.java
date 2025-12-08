@@ -5,61 +5,68 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.util.Date;
-
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
- * 用户表
- * @TableName user
+ * 权限表
+ * @TableName permission
  */
-@TableName(value ="user")
+@TableName(value ="permission")
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class User {
+public class Permission {
     /**
-     * 用户ID
+     * 权限ID
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
-     * 用户名
+     * 权限名称
      */
-    @TableField(value = "username")
-    private String username;
+    @TableField(value = "name")
+    private String name;
 
     /**
-     * 密码
+     * 权限代码
      */
-    @TableField(value = "password")
-    private String password;
+    @TableField(value = "code")
+    private String code;
 
     /**
-     * 昵称
+     * 权限类型：1菜单 2按钮 3接口
      */
-    @TableField(value = "nickname")
-    private String nickname;
+    @TableField(value = "type")
+    private Integer type;
 
     /**
-     * 邮箱
+     * 父权限ID
      */
-    @TableField(value = "email")
-    private String email;
+    @TableField(value = "parent_id")
+    private Long parentId;
 
     /**
-     * 手机号码
+     * 访问路径
      */
-    @TableField(value = "phone")
-    private String phone;
+    @TableField(value = "path")
+    private String path;
 
     /**
-     * 用户头像
+     * 组件路径
      */
-    @TableField(value = "avatar")
-    private String avatar;
+    @TableField(value = "component")
+    private String component;
+
+    /**
+     * 图标
+     */
+    @TableField(value = "icon")
+    private String icon;
+
+    /**
+     * 排序
+     */
+    @TableField(value = "sort")
+    private Integer sort;
 
     /**
      * 状态：0正常 1禁用
@@ -108,14 +115,16 @@ public class User {
         if (getClass() != that.getClass()) {
             return false;
         }
-        User other = (User) that;
+        Permission other = (Permission) that;
         return (this.getId() == null ? other.getId() == null : this.getId().equals(other.getId()))
-            && (this.getUsername() == null ? other.getUsername() == null : this.getUsername().equals(other.getUsername()))
-            && (this.getPassword() == null ? other.getPassword() == null : this.getPassword().equals(other.getPassword()))
-            && (this.getNickname() == null ? other.getNickname() == null : this.getNickname().equals(other.getNickname()))
-            && (this.getEmail() == null ? other.getEmail() == null : this.getEmail().equals(other.getEmail()))
-            && (this.getPhone() == null ? other.getPhone() == null : this.getPhone().equals(other.getPhone()))
-            && (this.getAvatar() == null ? other.getAvatar() == null : this.getAvatar().equals(other.getAvatar()))
+            && (this.getName() == null ? other.getName() == null : this.getName().equals(other.getName()))
+            && (this.getCode() == null ? other.getCode() == null : this.getCode().equals(other.getCode()))
+            && (this.getType() == null ? other.getType() == null : this.getType().equals(other.getType()))
+            && (this.getParentId() == null ? other.getParentId() == null : this.getParentId().equals(other.getParentId()))
+            && (this.getPath() == null ? other.getPath() == null : this.getPath().equals(other.getPath()))
+            && (this.getComponent() == null ? other.getComponent() == null : this.getComponent().equals(other.getComponent()))
+            && (this.getIcon() == null ? other.getIcon() == null : this.getIcon().equals(other.getIcon()))
+            && (this.getSort() == null ? other.getSort() == null : this.getSort().equals(other.getSort()))
             && (this.getStatus() == null ? other.getStatus() == null : this.getStatus().equals(other.getStatus()))
             && (this.getCreateBy() == null ? other.getCreateBy() == null : this.getCreateBy().equals(other.getCreateBy()))
             && (this.getUpdateBy() == null ? other.getUpdateBy() == null : this.getUpdateBy().equals(other.getUpdateBy()))
@@ -129,12 +138,14 @@ public class User {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
-        result = prime * result + ((getUsername() == null) ? 0 : getUsername().hashCode());
-        result = prime * result + ((getPassword() == null) ? 0 : getPassword().hashCode());
-        result = prime * result + ((getNickname() == null) ? 0 : getNickname().hashCode());
-        result = prime * result + ((getEmail() == null) ? 0 : getEmail().hashCode());
-        result = prime * result + ((getPhone() == null) ? 0 : getPhone().hashCode());
-        result = prime * result + ((getAvatar() == null) ? 0 : getAvatar().hashCode());
+        result = prime * result + ((getName() == null) ? 0 : getName().hashCode());
+        result = prime * result + ((getCode() == null) ? 0 : getCode().hashCode());
+        result = prime * result + ((getType() == null) ? 0 : getType().hashCode());
+        result = prime * result + ((getParentId() == null) ? 0 : getParentId().hashCode());
+        result = prime * result + ((getPath() == null) ? 0 : getPath().hashCode());
+        result = prime * result + ((getComponent() == null) ? 0 : getComponent().hashCode());
+        result = prime * result + ((getIcon() == null) ? 0 : getIcon().hashCode());
+        result = prime * result + ((getSort() == null) ? 0 : getSort().hashCode());
         result = prime * result + ((getStatus() == null) ? 0 : getStatus().hashCode());
         result = prime * result + ((getCreateBy() == null) ? 0 : getCreateBy().hashCode());
         result = prime * result + ((getUpdateBy() == null) ? 0 : getUpdateBy().hashCode());
@@ -151,12 +162,14 @@ public class User {
         sb.append(" [");
         sb.append("Hash = ").append(hashCode());
         sb.append(", id=").append(id);
-        sb.append(", username=").append(username);
-        sb.append(", password=").append(password);
-        sb.append(", nickname=").append(nickname);
-        sb.append(", email=").append(email);
-        sb.append(", phone=").append(phone);
-        sb.append(", avatar=").append(avatar);
+        sb.append(", name=").append(name);
+        sb.append(", code=").append(code);
+        sb.append(", type=").append(type);
+        sb.append(", parentId=").append(parentId);
+        sb.append(", path=").append(path);
+        sb.append(", component=").append(component);
+        sb.append(", icon=").append(icon);
+        sb.append(", sort=").append(sort);
         sb.append(", status=").append(status);
         sb.append(", createBy=").append(createBy);
         sb.append(", updateBy=").append(updateBy);
