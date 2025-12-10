@@ -1,4 +1,4 @@
-package com.ma.grecorde.constant;
+package com.ma.grecode.constant;
 
 public class HttpStatus {
     /**

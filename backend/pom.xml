@@ -135,7 +135,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
                 <configuration>
-                    <mainClass>com.ma.grecorde.GrecordeApplication</mainClass>
+                    <mainClass>com.ma.grecode.GrecordeApplication</mainClass>
                     <skip>true</skip>
                 </configuration>
                 <executions>

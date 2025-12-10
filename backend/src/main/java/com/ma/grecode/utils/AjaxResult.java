@@ -1,8 +1,8 @@
-package com.ma.grecorde.utils;
+package com.ma.grecode.utils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.ma.grecorde.constant.HttpStatus;
+import com.ma.grecode.constant.HttpStatus;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 

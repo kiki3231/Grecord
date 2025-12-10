@@ -1,4 +1,4 @@
-package com.ma.grecorde.utils;
+package com.ma.grecode.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

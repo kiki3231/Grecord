@@ -1,9 +1,9 @@
-package com.ma.grecorde.service.impl;
+package com.ma.grecode.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.ma.grecorde.entity.RolePermission;
-import com.ma.grecorde.service.RolePermissionService;
-import com.ma.grecorde.mapper.RolePermissionMapper;
+import com.ma.grecode.entity.RolePermission;
+import com.ma.grecode.service.RolePermissionService;
+import com.ma.grecode.mapper.RolePermissionMapper;
 import org.springframework.stereotype.Service;
 
 /**

@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.ma.grecorde.mapper.PermissionMapper">
+<mapper namespace="com.ma.grecode.mapper.PermissionMapper">
 
-    <resultMap id="BaseResultMap" type="com.ma.grecorde.entity.Permission">
+    <resultMap id="BaseResultMap" type="com.ma.grecode.entity.Permission">
             <id property="id" column="id" />
             <result property="name" column="name" />
             <result property="code" column="code" />

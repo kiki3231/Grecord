@@ -1,9 +1,9 @@
-package com.ma.grecorde.controller;
+package com.ma.grecode.controller;
 
-import com.ma.grecorde.entity.dto.LoginBody;
-import com.ma.grecorde.entity.dto.RegisterBody;
-import com.ma.grecorde.service.UserService;
-import com.ma.grecorde.utils.AjaxResult;
+import com.ma.grecode.entity.dto.LoginBody;
+import com.ma.grecode.entity.dto.RegisterBody;
+import com.ma.grecode.service.UserService;
+import com.ma.grecode.utils.AjaxResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

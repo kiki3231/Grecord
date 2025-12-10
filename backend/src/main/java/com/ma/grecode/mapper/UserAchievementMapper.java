@@ -1,6 +1,6 @@
-package com.ma.grecorde.mapper;
+package com.ma.grecode.mapper;
 
-import com.ma.grecorde.entity.UserAchievement;
+import com.ma.grecode.entity.UserAchievement;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 

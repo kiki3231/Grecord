@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.ma.grecorde.mapper.GameAchievementMapper">
+<mapper namespace="com.ma.grecode.mapper.GameAchievementMapper">
 
-    <resultMap id="BaseResultMap" type="com.ma.grecorde.entity.GameAchievement">
+    <resultMap id="BaseResultMap" type="com.ma.grecode.entity.GameAchievement">
             <id property="id" column="id" />
             <result property="gameId" column="game_id" />
             <result property="name" column="name" />

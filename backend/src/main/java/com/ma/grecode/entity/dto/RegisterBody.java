@@ -1,4 +1,4 @@
-package com.ma.grecorde.entity.dto;
+package com.ma.grecode.entity.dto;
 
 import lombok.Data;
 

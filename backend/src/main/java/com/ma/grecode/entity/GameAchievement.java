@@ -1,4 +1,4 @@
-package com.ma.grecorde.entity;
+package com.ma.grecode.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;

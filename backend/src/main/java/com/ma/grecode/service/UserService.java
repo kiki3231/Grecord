@@ -1,10 +1,10 @@
-package com.ma.grecorde.service;
+package com.ma.grecode.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.ma.grecorde.entity.User;
-import com.ma.grecorde.entity.dto.RegisterBody;
-import com.ma.grecorde.entity.dto.LoginBody;
-import com.ma.grecorde.utils.AjaxResult;
+import com.ma.grecode.entity.User;
+import com.ma.grecode.entity.dto.RegisterBody;
+import com.ma.grecode.entity.dto.LoginBody;
+import com.ma.grecode.utils.AjaxResult;
 
 /**
  * 用户Service接口

@@ -1,6 +1,6 @@
-package com.ma.grecorde.mapper;
+package com.ma.grecode.mapper;
 
-import com.ma.grecorde.entity.Role;
+import com.ma.grecode.entity.Role;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 

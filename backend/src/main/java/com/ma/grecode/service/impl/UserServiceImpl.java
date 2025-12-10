@@ -1,14 +1,14 @@
-package com.ma.grecorde.service.impl;
+package com.ma.grecode.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.ma.grecorde.constant.HttpStatus;
-import com.ma.grecorde.entity.User;
-import com.ma.grecorde.mapper.UserMapper;
-import com.ma.grecorde.entity.dto.LoginBody;
-import com.ma.grecorde.entity.dto.RegisterBody;
-import com.ma.grecorde.service.UserService;
-import com.ma.grecorde.utils.AjaxResult;
-import com.ma.grecorde.utils.JwtUtil;
+import com.ma.grecode.constant.HttpStatus;
+import com.ma.grecode.entity.User;
+import com.ma.grecode.mapper.UserMapper;
+import com.ma.grecode.entity.dto.LoginBody;
+import com.ma.grecode.entity.dto.RegisterBody;
+import com.ma.grecode.service.UserService;
+import com.ma.grecode.utils.AjaxResult;
+import com.ma.grecode.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;

@@ -1,4 +1,4 @@
-package com.ma.grecorde.config;
+package com.ma.grecode.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;

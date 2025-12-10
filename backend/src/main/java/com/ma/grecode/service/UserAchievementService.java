@@ -1,6 +1,6 @@
-package com.ma.grecorde.service;
+package com.ma.grecode.service;
 
-import com.ma.grecorde.entity.UserAchievement;
+import com.ma.grecode.entity.UserAchievement;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**

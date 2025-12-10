@@ -1,6 +1,6 @@
-package com.ma.grecorde.service;
+package com.ma.grecode.service;
 
-import com.ma.grecorde.entity.Role;
+import com.ma.grecode.entity.Role;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**

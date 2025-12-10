@@ -1,9 +1,9 @@
-package com.ma.grecorde.service.impl;
+package com.ma.grecode.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.ma.grecorde.entity.GameType;
-import com.ma.grecorde.service.GameTypeService;
-import com.ma.grecorde.mapper.GameTypeMapper;
+import com.ma.grecode.entity.GameType;
+import com.ma.grecode.service.GameTypeService;
+import com.ma.grecode.mapper.GameTypeMapper;
 import org.springframework.stereotype.Service;
 
 /**

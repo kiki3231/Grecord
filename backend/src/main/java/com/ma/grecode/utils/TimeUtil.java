@@ -1,4 +1,4 @@
-package com.ma.grecorde.utils;
+package com.ma.grecode.utils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
