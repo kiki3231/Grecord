@@ -40,6 +40,8 @@ public class SecurityConfig {
             .authorizeRequests()
             // 允许匿名访问的接口
             .antMatchers("/auth/login", "/auth/register").permitAll()
+            // 允许访问头像资源
+            .antMatchers("/avatar/**").permitAll()
             // Swagger文档
             .antMatchers("/swagger-ui.html", "/swagger-resources/**", "/v2/api-docs").permitAll()
             // 其他接口需要认证

@@ -82,3 +82,10 @@ token:
   secret: abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz123dsfjsaoi3121298312
   # 令牌有效期（默认30分钟）
   expireTime: 20160
+
+# 头像上传配置
+avatar:
+  # 头像上传路径
+  upload.path: D:/GRecord/backend/src/main/resources/static/avatar
+  # 头像访问路径
+  access.path: /avatar

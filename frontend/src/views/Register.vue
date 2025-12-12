@@ -80,30 +80,86 @@ async function onSubmit() {
 <template>
     <div class="login-page">
         <div class="card">
-            <h1>注册账号</h1>
-            <p class="subtitle">创建你的 GRecord 账户</p>
+            <div class="brand-container">
+                <div class="brand-icon">G</div>
+                <h1>GRecord</h1>
+            </div>
+            <p class="subtitle">游戏记录打卡 · 注册</p>
 
             <form @submit.prevent="onSubmit">
-                <label>用户名</label>
-                <input v-model="username" placeholder="请输入用户名" />
+                <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <input 
+                        v-model="username" 
+                        class="form-control"
+                        placeholder="请输入用户名" 
+                        autocomplete="username"
+                    />
+                </div>
 
-                <label>昵称（可选）</label>
-                <input v-model="nickname" placeholder="请输入昵称" />
+                <div class="form-group">
+                    <label class="form-label">昵称（可选）</label>
+                    <input 
+                        v-model="nickname" 
+                        class="form-control"
+                        placeholder="请输入昵称" 
+                    />
+                </div>
 
-                <label>邮箱（可选）</label>
-                <input v-model="email" type="email" placeholder="请输入邮箱" />
+                <div class="form-group">
+                    <label class="form-label">邮箱（可选）</label>
+                    <input 
+                        v-model="email" 
+                        type="email" 
+                        class="form-control"
+                        placeholder="请输入邮箱" 
+                        autocomplete="email"
+                    />
+                </div>
 
-                <label>手机号（可选）</label>
-                <input v-model="phone" type="tel" placeholder="请输入手机号" @input="validatePhone" />
+                <div class="form-group">
+                    <label class="form-label">手机号（可选）</label>
+                    <input 
+                        v-model="phone" 
+                        type="tel" 
+                        class="form-control"
+                        placeholder="请输入手机号" 
+                        @input="validatePhone"
+                        autocomplete="tel"
+                    />
+                </div>
 
-                <label>密码</label>
-                <input v-model="password" type="password" placeholder="至少 6 位" />
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <input 
+                        v-model="password" 
+                        type="password" 
+                        class="form-control"
+                        placeholder="至少 6 位" 
+                        autocomplete="new-password"
+                    />
+                </div>
 
-                <label>确认密码</label>
-                <input v-model="confirm" type="password" placeholder="再次输入密码" />
+                <div class="form-group">
+                    <label class="form-label">确认密码</label>
+                    <input 
+                        v-model="confirm" 
+                        type="password" 
+                        class="form-control"
+                        placeholder="再次输入密码" 
+                        autocomplete="new-password"
+                    />
+                </div>
 
-                <button type="submit" :disabled="loading">{{ loading ? '提交中...' : '注册' }}</button>
-                <p v-if="error" class="err">{{ error }}</p>
+                <button 
+                    type="submit" 
+                    class="login-btn"
+                    :disabled="loading"
+                >
+                    {{ loading ? '注册中...' : '注册' }}
+                </button>
+
+                <div v-if="error" class="error-message">{{ error }}</div>
             </form>
 
             <p class="tip">
@@ -115,75 +171,279 @@ async function onSubmit() {
 </template>
 
 <style scoped>
+:root {
+  --primary-color: #646cff;
+  --primary-hover: #535bf2;
+  --secondary-color: #f5f5f7;
+  --text-primary: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --text-tertiary: #86868b;
+  --border-color: #e5e5ea;
+  --success-color: #34c759;
+  --error-color: #ff3b30;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 50%;
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+}
+
 .login-page {
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f6f7fb;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
 }
 
+/* 添加装饰性元素 */
+.login-page::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: float 20s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    25% { transform: translate(20%, -20%) rotate(90deg); }
+    50% { transform: translate(0, -40%) rotate(180deg); }
+    75% { transform: translate(-20%, -20%) rotate(270deg); }
+}
+
+/* 登录卡片 */
 .card {
-    width: 360px;
-    background: #fff;
-    padding: 28px;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+    width: 100%;
+    max-width: 420px;
+    background: white;
+    padding: 2.5rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    z-index: 1;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 品牌部分 */
+.brand-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.brand-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 800;
+    font-size: 1.5rem;
+    box-shadow: var(--shadow-md);
 }
 
 h1 {
-    margin: 0 0 6px;
-    text-align: center;
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
 }
 
 .subtitle {
-    margin: 0 0 18px;
+    margin: 0 0 2.5rem 0;
     text-align: center;
-    color: #666;
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+    font-weight: 400;
 }
 
-label {
-    display: block;
-    font-size: 12px;
-    color: #666;
-    margin-top: 12px;
+/* 表单样式 */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
-input {
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+}
+
+.form-control {
     width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    margin-top: 6px;
+    padding: 1rem 1.125rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    background-color: white;
+    transition: all var(--transition-fast);
+    box-shadow: var(--shadow-sm);
 }
 
-button {
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(100, 108, 255, 0.1);
+    transform: translateY(-1px);
+}
+
+.form-control::placeholder {
+    color: var(--text-tertiary);
+}
+
+/* 登录按钮 */
+.login-btn {
     width: 100%;
-    margin-top: 16px;
-    padding: 10px 12px;
-    background: #10b981;
-    color: #fff;
-    border: 0;
-    border-radius: 8px;
+    padding: 1rem 1.125rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
     cursor: pointer;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    transition: all var(--transition-normal);
+    box-shadow: var(--shadow-md);
+    margin-top: 0.5rem;
+    position: relative;
+    overflow: hidden;
 }
 
-.err {
-    color: #e11d48;
-    font-size: 12px;
-    margin-top: 8px;
+.login-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width var(--transition-normal), height var(--transition-normal);
 }
 
-.ok {
-    color: #059669;
-    font-size: 12px;
-    margin-top: 8px;
+.login-btn:hover::before {
+    width: 300px;
+    height: 300px;
 }
 
-.tip {
-    margin-top: 12px;
+.login-btn:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.login-btn:active {
+    transform: translateY(0);
+}
+
+.login-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.login-btn:disabled:hover {
+    box-shadow: var(--shadow-md);
+}
+
+/* 错误信息 */
+.error-message {
+    color: var(--error-color);
+    background-color: rgba(255, 59, 48, 0.1);
+    border: 1px solid rgba(255, 59, 48, 0.2);
+    padding: 0.875rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
     text-align: center;
-    color: #999;
-    font-size: 12px;
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* 提示信息 */
+.tip {
+    margin-top: 1.75rem;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.tip a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color var(--transition-fast);
+}
+
+.tip a:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+    .login-page {
+        padding: 1rem;
+    }
+    
+    .card {
+        padding: 2rem 1.5rem;
+        border-radius: var(--radius-md);
+    }
+    
+    h1 {
+        font-size: 1.75rem;
+    }
+    
+    .brand-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.25rem;
+    }
 }
 </style>

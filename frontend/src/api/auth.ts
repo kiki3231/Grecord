@@ -32,3 +32,13 @@ export async function updateUserInfoApi(payload: {
   const { data } = await http.put('/user/info', payload)
   return data
 }
+
+// 上传头像
+export async function uploadAvatarApi(payload: FormData) {
+  const { data } = await http.post('/user/avatar', payload, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+  return data
+}
