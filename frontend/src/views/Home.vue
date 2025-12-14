@@ -11,11 +11,9 @@ const userInfo = ref({
   nickname: '',
   avatar: ''
 })
-const loading = ref(false)
 
 // 获取用户信息
-async function getUserInfo() {
-  loading.value = true
+async function fetchUserInfo() {
   try {
     const res = await getUserInfoApi()
     if (res.code === 200) {
@@ -23,8 +21,6 @@ async function getUserInfo() {
     }
   } catch (e) {
     console.error('获取用户信息失败:', e)
-  } finally {
-    loading.value = false
   }
 }
 
@@ -35,7 +31,7 @@ function logout() {
 
 // 组件挂载时获取用户信息
 onMounted(() => {
-  getUserInfo()
+  fetchUserInfo()
 })
 </script>
 
@@ -64,8 +60,8 @@ onMounted(() => {
         </div>
         
         <div class="user-actions">
-          <button class="action-btn notification-btn">🔔</button>
-          <button class="action-btn message-btn">💬</button>
+          <button class="action-btn">🔔</button>
+          <button class="action-btn">💬</button>
           
           <div class="user-dropdown">
             <div class="user-info" @click="showDropdown = !showDropdown">
@@ -138,7 +134,7 @@ onMounted(() => {
 
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="stat-icon stat-icon-primary">📅</div>
+            <div class="stat-icon primary">📅</div>
             <div class="stat-content">
               <h3>今日打卡</h3>
               <p class="stat-value">还未打卡</p>
@@ -147,7 +143,7 @@ onMounted(() => {
           </div>
           
           <div class="stat-card">
-            <div class="stat-icon stat-icon-success">⏱️</div>
+            <div class="stat-icon success">⏱️</div>
             <div class="stat-content">
               <h3>本周时长</h3>
               <p class="stat-value">0 分钟</p>
@@ -156,7 +152,7 @@ onMounted(() => {
           </div>
           
           <div class="stat-card">
-            <div class="stat-icon stat-icon-info">🎮</div>
+            <div class="stat-icon info">🎮</div>
             <div class="stat-content">
               <h3>进行中的游戏</h3>
               <ul class="game-list">
@@ -168,7 +164,7 @@ onMounted(() => {
           </div>
           
           <div class="stat-card">
-            <div class="stat-icon stat-icon-warning">🏆</div>
+            <div class="stat-icon warning">🏆</div>
             <div class="stat-content">
               <h3>本周成就</h3>
               <p class="stat-value">0 个新成就</p>
@@ -336,11 +332,7 @@ onMounted(() => {
   font-weight: 500;
 }
 
-.nav-item:hover {
-  color: var(--primary-color);
-  background-color: rgba(64, 158, 255, 0.1);
-}
-
+.nav-item:hover,
 .nav-item.active {
   color: var(--primary-color);
   background-color: rgba(64, 158, 255, 0.1);
@@ -399,7 +391,6 @@ onMounted(() => {
   padding: 8px;
   border-radius: 4px;
   transition: var(--transition);
-  position: relative;
 }
 
 .action-btn:hover {
@@ -438,11 +429,6 @@ onMounted(() => {
   color: white;
   font-weight: 500;
   font-size: 16px;
-}
-
-.avatar-placeholder {
-  font-size: 16px;
-  font-weight: bold;
 }
 
 .avatar img {
@@ -514,7 +500,7 @@ onMounted(() => {
 
 /* 侧边栏 */
 .sidebar {
-  width: var(--sidebar-width);
+  width: var(--sidebar-width-collapsed);
   background-color: #fff;
   border-right: 1px solid var(--border-color);
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
@@ -528,10 +514,6 @@ onMounted(() => {
   width: var(--sidebar-width);
 }
 
-.sidebar:not(.sidebar-open) {
-  width: var(--sidebar-width-collapsed);
-}
-
 /* 侧边栏导航 */
 .sidebar-nav {
   padding: 16px 0;
@@ -540,7 +522,8 @@ onMounted(() => {
 .sidebar-item {
   display: flex;
   align-items: center;
-  padding: 12px 20px;
+  padding: 12px 0;
+  justify-content: center;
   color: var(--text-color-secondary);
   text-decoration: none;
   transition: var(--transition);
@@ -567,15 +550,16 @@ onMounted(() => {
 
 .sidebar-text {
   font-weight: 500;
-}
-
-.sidebar:not(.sidebar-open) .sidebar-text {
   display: none;
 }
 
-.sidebar:not(.sidebar-open) .sidebar-item {
-  justify-content: center;
-  padding: 12px 0;
+.sidebar.sidebar-open .sidebar-text {
+  display: block;
+}
+
+.sidebar.sidebar-open .sidebar-item {
+  justify-content: flex-start;
+  padding: 12px 20px;
 }
 
 /* 侧边栏底部 */
@@ -642,22 +626,22 @@ onMounted(() => {
   font-size: 24px;
 }
 
-.stat-icon-primary {
+.stat-icon.primary {
   background-color: rgba(64, 158, 255, 0.1);
   color: var(--primary-color);
 }
 
-.stat-icon-success {
+.stat-icon.success {
   background-color: rgba(103, 194, 58, 0.1);
   color: var(--success-color);
 }
 
-.stat-icon-info {
+.stat-icon.info {
   background-color: rgba(144, 147, 153, 0.1);
   color: var(--info-color);
 }
 
-.stat-icon-warning {
+.stat-icon.warning {
   background-color: rgba(230, 162, 60, 0.1);
   color: var(--warning-color);
 }
@@ -881,38 +865,20 @@ onMounted(() => {
 }
 
 @keyframes loading {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* 响应式设计 */
 @media (max-width: 1024px) {
-  .content-sections {
-    grid-template-columns: 1fr;
-  }
+  .content-sections { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 768px) {
-  .top-header {
-    padding: 0 16px;
-  }
-  
-  .main-nav {
-    display: none;
-  }
-  
-  .search-box input {
-    width: 180px;
-  }
-  
-  .search-box input:focus {
-    width: 220px;
-  }
-  
+  .top-header { padding: 0 16px; }
+  .main-nav { display: none; }
+  .search-box input { width: 180px; }
+  .search-box input:focus { width: 220px; }
   .sidebar {
     position: fixed;
     left: 0;
@@ -921,36 +887,15 @@ onMounted(() => {
     z-index: 99;
     transform: translateX(-100%);
   }
-  
-  .sidebar.sidebar-open {
-    transform: translateX(0);
-  }
-  
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .content {
-    padding: 16px;
-  }
+  .sidebar.sidebar-open { transform: translateX(0); }
+  .stats-grid { grid-template-columns: 1fr; }
+  .content { padding: 16px; }
 }
 
 @media (max-width: 480px) {
-  .header-right {
-    gap: 8px;
-  }
-  
-  .search-box {
-    display: none;
-  }
-  
-  .content-header h1 {
-    font-size: 24px;
-  }
-  
-  .stat-card {
-    flex-direction: column;
-    text-align: center;
-  }
+  .header-right { gap: 8px; }
+  .search-box { display: none; }
+  .content-header h1 { font-size: 24px; }
+  .stat-card { flex-direction: column; text-align: center; }
 }
 </style>

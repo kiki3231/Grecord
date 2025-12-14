@@ -242,11 +242,11 @@ function getVerificationCode() {
                             </div>
                         </div>
                         
-                        <form @submit.prevent="onLoginSubmit" class="login-form">
+                        <form @submit.prevent="onSubmit" class="login-form">
                             <div class="form-group">
                                 <div class="input-wrapper">
                                     <input 
-                                        v-model="loginUsername" 
+                                        v-model="username" 
                                         class="form-control"
                                         placeholder="用户名/手机号"
                                         autocomplete="username"
@@ -257,7 +257,7 @@ function getVerificationCode() {
                             <div class="form-group">
                                 <div class="input-wrapper">
                                     <input 
-                                        v-model="loginPassword" 
+                                        v-model="password" 
                                         :type="loginType === 'password' ? 'password' : 'text'"
                                         class="form-control"
                                         :placeholder="loginType === 'password' ? '请输入密码' : '请输入6位验证码'"
@@ -268,7 +268,7 @@ function getVerificationCode() {
                                         type="button"
                                         class="code-btn"
                                         @click="getVerificationCode"
-                                        :disabled="loginLoading"
+                                        :disabled="loading"
                                     >
                                         获取验证码
                                     </button>

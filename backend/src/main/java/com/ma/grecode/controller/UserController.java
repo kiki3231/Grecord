@@ -11,6 +11,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -49,6 +51,12 @@ public class UserController {
             
             // 隐藏敏感信息
             user.setPassword(null);
+            
+            // 检查头像URL的有效性
+            if (user.getAvatar() != null && user.getAvatar().length() < 5) {
+                System.out.println("发现被截断的头像URL: " + user.getAvatar());
+                user.setAvatar(""); // 设置为空，使用默认头像
+            }
             
             return AjaxResult.success("获取用户信息成功", user);
         } catch (Exception e) {
@@ -116,16 +124,33 @@ public class UserController {
                 return AjaxResult.error(400, "上传失败：只能上传图片类型文件");
             }
             
+            // 限制为常用图片格式
+            List<String> allowedContentTypes = Arrays.asList(
+                "image/jpeg", "image/png", "image/gif", "image/webp", "image/bmp"
+            );
+            if (!allowedContentTypes.contains(contentType)) {
+                return AjaxResult.error(400, "上传失败：只支持JPEG、PNG、GIF、WebP、BMP格式的图片");
+            }
+            
+            // 验证文件扩展名
+            String originalFilename = avatarFile.getOriginalFilename();
+            if (originalFilename != null) {
+                String suffix = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
+                List<String> allowedExtensions = Arrays.asList("jpg", "jpeg", "png", "gif", "webp", "bmp");
+                if (!allowedExtensions.contains(suffix)) {
+                    return AjaxResult.error(400, "上传失败：文件扩展名无效，只支持.jpg, .jpeg, .png, .gif, .webp, .bmp");
+                }
+            }
+            
             // 验证文件大小（限制10MB）
             long maxSize = 10 * 1024 * 1024;
             if (avatarFile.getSize() > maxSize) {
                 return AjaxResult.error(400, "上传失败：头像文件大小不能超过10MB");
             }
             
-            // 生成唯一文件名
-            String originalFilename = avatarFile.getOriginalFilename();
+            // 生成基于用户ID的固定格式文件名
             String suffix = originalFilename != null ? originalFilename.substring(originalFilename.lastIndexOf(".")) : ".jpg";
-            String fileName = UUID.randomUUID().toString() + suffix;
+            String fileName = "user_" + currentUser.getId() + "_avatar" + suffix;
             
             // 创建上传目录
             File uploadDir = new File(avatarUploadPath);
@@ -133,16 +158,23 @@ public class UserController {
                 uploadDir.mkdirs();
             }
             
-            // 保存文件
-            File destFile = new File(uploadDir, fileName);
-            avatarFile.transferTo(destFile);
+            // 删除旧头像文件（如果存在）
+            if (currentUser.getAvatar() != null) {
+                String oldFileName = currentUser.getAvatar().substring(currentUser.getAvatar().lastIndexOf("/") + 1);
+                File oldFile = new File(uploadDir, oldFileName);
+                if (oldFile.exists()) {
+                    oldFile.delete(); // 尝试删除旧文件，忽略删除失败的情况
+                }
+            }
             
-            // 更新用户头像
+            // 保存新头像文件
+            avatarFile.transferTo(new File(uploadDir, fileName));
+            
+            // 更新用户头像信息
             String avatarUrl = avatarAccessPath + "/" + fileName;
             currentUser.setAvatar(avatarUrl);
             userService.updateById(currentUser);
             
-            // 返回上传结果
             return AjaxResult.success("头像上传成功", avatarUrl);
         } catch (IOException e) {
             return AjaxResult.error(500, "头像上传失败：文件保存异常 - " + e.getMessage());

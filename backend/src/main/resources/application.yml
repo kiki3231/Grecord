@@ -1,4 +1,3 @@
-
 # MyBatis-plus配置
 mybatis-plus:
   # 搜索指定包别名
@@ -85,7 +84,7 @@ token:
 
 # 头像上传配置
 avatar:
-  # 头像上传路径
-  upload.path: D:/GRecord/backend/src/main/resources/static/avatar
+  # 头像上传路径 - 保存到编译后的target目录，确保能被立即访问
+  upload.path: D:/GRecord/backend/target/classes/static/avatar
   # 头像访问路径
   access.path: /avatar

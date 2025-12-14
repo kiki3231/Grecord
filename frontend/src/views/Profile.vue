@@ -25,7 +25,7 @@
 
     <div class="content-wrap">
       <!-- Left sidebar -->
-      <aside class="sidebar" :class="{ collapsed: collapsed }">
+      <aside class="sidebar" :class="{ collapsed }">
         <ul class="side-menu">
           <li class="side-item active">📊 仪表盘</li>
           <li class="side-item">🎮 我的游戏</li>
@@ -45,7 +45,6 @@
             <p class="muted">记录你的游戏历程，追踪你的游戏成就</p>
           </div>
           <div class="welcome-right">
-            <!-- quick stats -->
             <div class="stat">
               <small>今日打卡</small>
               <div class="stat-value">还未打卡</div>
@@ -68,23 +67,11 @@
             <div class="card profile-card">
               <div class="avatar-area">
                 <label class="avatar-wrapper" for="avatarInput">
-                  <!-- 图片和占位符绝对定位重叠，避免高度异常 -->
                   <div class="avatar-placeholder" v-if="!previewAvatar && !user.avatar">{{ user.username?.charAt(0) || 'U' }}</div>
-                  <img 
-                    v-if="previewAvatar" 
-                    :src="previewAvatar" 
-                    alt="avatar preview" 
-                    class="avatar-img"
-                  />
-                  <img 
-                    v-else-if="user.avatar" 
-                    :src="user.avatar" 
-                    alt="user avatar" 
-                    class="avatar-img"
-                  />
+                  <img v-if="previewAvatar" :src="previewAvatar" alt="avatar preview" class="avatar-img" />
+                  <img v-else-if="user.avatar" :src="user.avatar" alt="user avatar" class="avatar-img" />
                   <div class="avatar-mask">更换头像</div>
                 </label>
-                <!-- 只保留一个隐藏样式，避免冲突 -->
                 <input id="avatarInput" ref="avatarInput" type="file" accept="image/*" @change="onAvatarChange" />
               </div>
 
@@ -112,7 +99,7 @@
                 <label>手机号</label>
                 <input v-model="form.phone" type="tel" />
 
-                <div class="form-actions" style="margin-top: 16px; display: flex; gap: 8px;">
+                <div class="form-actions">
                   <button class="btn primary" type="submit" :disabled="loading">{{ loading ? '保存中...' : '保存' }}</button>
                   <button class="btn ghost" type="button" @click="cancelEdit">取消</button>
                 </div>
@@ -125,7 +112,7 @@
             <div class="card records-card">
               <div class="card-header">
                 <h4>近期游戏记录</h4>
-                <a class="link-muted" href="/records" style="color: #1e6fff; text-decoration: none; font-size: 13px;">查看全部</a>
+                <a class="link-muted" href="/records">查看全部</a>
               </div>
 
               <ul class="records-list">
@@ -142,12 +129,12 @@
                     <div class="record-duration muted">{{ r.duration }}</div>
                   </div>
                 </li>
-                <li v-if="recentRecords.length === 0" class="empty muted" style="padding: 12px; text-align: center;">暂无记录</li>
+                <li v-if="recentRecords.length === 0" class="empty muted">暂无记录</li>
               </ul>
             </div>
 
             <!-- placeholder: other dashboard area -->
-            <div class="card placeholder-card" style="margin-top: 18px; padding: 24px;">
+            <div class="card placeholder-card">
               <h4>统计 & 成就</h4>
               <p class="muted">这里可以放更详细的统计图、成就墙等。</p>
             </div>
@@ -165,12 +152,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-
-// 导入真实 API
 import { getUserInfoApi, updateUserInfoApi, uploadAvatarApi } from '../api/auth'
+
 const router = useRouter()
 
-// demo state
+// 状态管理
 const user = ref({
   username: 'User',
   nickname: '',
@@ -178,37 +164,46 @@ const user = ref({
   phone: '',
   avatar: ''
 })
-const defaultAvatar = '/default-avatar.png' // 替换为你的默认头像地址
+const defaultAvatar = '/default-avatar.png'
 const previewAvatar = ref<string | null>(null)
 const collapsed = ref(false)
 const search = ref('')
 
-// form / ui
+// 表单和UI状态
 const isEditing = ref(false)
 const form = ref({ nickname: '', email: '', phone: '' })
 const loading = ref(false)
 const error = ref('')
 const success = ref('')
 
-// sample recent records (替换成真实数据)
+// 最近游戏记录
 const recentRecords = ref([
   { title: 'Elden Ring', category: '开放世界 RPG', date: '2024-01-15', duration: '2 小时 30 分钟' },
   { title: 'Hades', category: '动作 Roguelike', date: '2024-01-14', duration: '1 小时 45 分钟' }
 ])
 
-// ====== 生命周期: 获取用户信息 ======
+// 获取用户信息
 async function getUserInfo() {
   loading.value = true
   error.value = ''
   try {
-    // 实际调用后端API获取用户信息
     const res = await getUserInfoApi()
-    if (res.code === 200) { 
-      user.value = res.data 
+    if (res.code === 200) {
+      const newUserInfo = res.data
+      // 保留带时间戳的头像URL
+      if (user.value.avatar?.includes('?t=')) {
+        newUserInfo.avatar = user.value.avatar
+      } else if (newUserInfo.avatar?.length < 5) {
+        newUserInfo.avatar = ''
+      }
+      
+      user.value = newUserInfo
+      form.value = { nickname: newUserInfo.nickname, email: newUserInfo.email, phone: newUserInfo.phone }
+      
+      if (!previewAvatar.value) {
+        previewAvatar.value = newUserInfo.avatar || null
+      }
     }
-    // set form
-    form.value = { nickname: user.value.nickname, email: user.value.email, phone: user.value.phone }
-    previewAvatar.value = user.value.avatar || null
   } catch (e: any) {
     error.value = '获取用户信息失败'
   } finally {
@@ -220,41 +215,36 @@ onMounted(() => {
   getUserInfo()
 })
 
-// toggle left collapse (可选)
+// 切换侧边栏
 function toggleCollapse() {
   collapsed.value = !collapsed.value
 }
 
-// 头像上传 change
+// 头像上传处理
 const avatarInput = ref<HTMLInputElement | null>(null)
+
 function onAvatarChange(e: Event) {
   const input = e.target as HTMLInputElement
-  if (!input.files || !input.files[0]) return
-  const file = input.files[0]
+  if (!input.files?.[0]) return
   
-  // 限制类型/大小
-  if (!file.type.startsWith('image/')) {
-    error.value = '请选择图片文件'
-    resetAvatarInput() // 重置输入框
-    return
-  }
-  if (file.size > 10 * 1024 * 1024) {
-    error.value = '头像不能超过 10MB'
-    resetAvatarInput() // 重置输入框
+  const file = input.files[0]
+  // 限制类型和大小
+  if (!file.type.startsWith('image/') || file.size > 10 * 1024 * 1024) {
+    error.value = '请选择小于10MB的图片文件'
+    resetAvatarInput()
     return
   }
 
-  // 预加载图片，避免布局波动
+  // 预加载图片
   const reader = new FileReader()
   reader.onload = () => {
     previewAvatar.value = String(reader.result)
-    // 上传到后端
     uploadAvatar(file)
   }
   reader.readAsDataURL(file)
 }
 
-// 上传头像（使用真实API）
+// 上传头像
 async function uploadAvatar(file: File) {
   loading.value = true
   error.value = ''
@@ -263,35 +253,32 @@ async function uploadAvatar(file: File) {
     const fd = new FormData()
     fd.append('avatar', file)
     const res = await uploadAvatarApi(fd)
-    if (res.code === 200) { 
-      user.value.avatar = res.data.avatarUrl
-      previewAvatar.value = res.data.avatarUrl
+    
+    if (res.code === 200 && typeof res.data === 'string') {
+      // 添加时间戳避免缓存
+      const avatarUrl = res.data + '?t=' + Date.now()
+      previewAvatar.value = avatarUrl
+      user.value.avatar = avatarUrl
       success.value = '头像上传成功'
     }
   } catch (e: any) {
     error.value = '头像上传失败'
-    previewAvatar.value = user.value.avatar || null // 回退到原头像
+    previewAvatar.value = user.value.avatar || null
   } finally {
     loading.value = false
-    resetAvatarInput() // 重置输入框，允许重复上传同一张图
+    resetAvatarInput()
   }
 }
 
-// 重置文件输入框的值
+// 重置文件输入
 function resetAvatarInput() {
-  if (avatarInput.value) {
-    avatarInput.value.value = ''
-  }
+  avatarInput.value?.value && (avatarInput.value.value = '')
 }
 
-// 编辑 / 保存
+// 编辑资料
 function startEdit() {
   isEditing.value = true
-  form.value = { 
-    nickname: user.value.nickname, 
-    email: user.value.email, 
-    phone: user.value.phone 
-  }
+  form.value = { ...user.value }
 }
 
 function cancelEdit() {
@@ -317,8 +304,8 @@ async function saveProfile() {
   }
 }
 
+// 退出登录
 function logout() {
-  // 清除 token 并跳转登录
   localStorage.removeItem('token')
   router.push('/login')
 }
@@ -333,7 +320,7 @@ function logout() {
   font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
 
-/* topbar */
+/* 顶部导航栏 */
 .topbar {
   height: 64px;
   background: #fff;
@@ -401,7 +388,7 @@ function logout() {
   border: 2px solid #f0f6ff;
 }
 
-/* layout */
+/* 布局 */
 .content-wrap {
   display: flex;
   gap: 24px;
@@ -411,19 +398,19 @@ function logout() {
   align-items: flex-start;
 }
 
-/* sidebar */
+/* 侧边栏 */
 .sidebar {
   width: 240px;
   background: #fff;
   border-radius: 12px;
   padding: 14px;
   box-shadow: 0 6px 20px rgba(15, 23, 42, 0.04);
-  min-height: 600px; /* 基准高度，避免对齐错位 */
-  flex-shrink: 0; /* 禁止压缩 */
+  min-height: 600px;
+  flex-shrink: 0;
   transition: width 0.2s;
 }
 
-/* 统一文件输入框隐藏样式，避免冲突 */
+/* 隐藏文件输入框 */
 input[type="file"] {
   position: absolute;
   width: 0;
@@ -469,16 +456,16 @@ input[type="file"] {
   font-weight: 600;
 }
 
-/* main area */
+/* 主内容区 */
 .main-area {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 18px;
-  min-height: 600px; /* 和侧边栏一致的基准高度 */
+  min-height: 600px;
 }
 
-/* welcome card */
+/* 欢迎卡片 */
 .welcome-card {
   background: #fff;
   border-radius: 12px;
@@ -494,11 +481,6 @@ input[type="file"] {
 .welcome-card h1 {
   margin: 0;
   font-size: 20px;
-}
-
-.welcome-card .muted {
-  color: #7b8794;
-  margin-top: 6px;
 }
 
 .welcome-right {
@@ -535,7 +517,7 @@ input[type="file"] {
   color: #2b2b2b;
 }
 
-/* grid area */
+/* 网格区域 */
 .grid-area {
   display: grid;
   grid-template-columns: 320px 1fr;
@@ -543,7 +525,7 @@ input[type="file"] {
   align-items: start;
 }
 
-/* card common */
+/* 通用卡片 */
 .card {
   background: #fff;
   border-radius: 12px;
@@ -556,7 +538,7 @@ input[type="file"] {
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }
 
-/* profile card */
+/* 个人资料卡片 */
 .profile-card {
   display: flex;
   flex-direction: column;
@@ -566,18 +548,10 @@ input[type="file"] {
   padding: 24px 18px;
 }
 
-.avatar-area {
-  position: relative;
-  width: 120px;
-  height: 120px;
-  overflow: hidden;
-  border-radius: 50%;
-}
-
 .avatar-wrapper {
   display: block;
-  width: 100%;
-  height: 100%;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   overflow: hidden;
   cursor: pointer;
@@ -587,23 +561,17 @@ input[type="file"] {
   flex-shrink: 0;
 }
 
-/* 头像图片绝对定位，和占位符重叠 */
-.avatar-img {
+.avatar-img, .avatar-placeholder {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-.avatar-placeholder {
-  width: 100%;
-  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 50%;
+}
+
+.avatar-placeholder {
   font-size: 36px;
   background: linear-gradient(135deg, #f0f4ff, #e8f1ff);
   color: #2b5ac9;
@@ -633,13 +601,7 @@ input[type="file"] {
   color: #2b2b2b;
 }
 
-.profile-info .muted {
-  color: #7b8794;
-  font-size: 13px;
-  margin-top: 4px;
-}
-
-/* profile actions */
+/* 操作按钮 */
 .profile-actions {
   display: flex;
   gap: 10px;
@@ -656,7 +618,7 @@ input[type="file"] {
   background: #f3f5f7;
   color: #2b2b2b;
   font-size: 14px;
-  transition: background 0.2s, transform 0.1s;
+  transition: all 0.2s;
 }
 
 .btn:hover {
@@ -690,10 +652,9 @@ input[type="file"] {
   opacity: 0.7;
   cursor: not-allowed;
   transform: none;
-  background: #1e6fff;
 }
 
-/* edit card */
+/* 编辑表单 */
 .edit-card label {
   display: block;
   margin-top: 16px;
@@ -721,7 +682,7 @@ input[type="file"] {
   border-color: #1e6fff;
 }
 
-/* records */
+/* 游戏记录 */
 .records-card .card-header {
   display: flex;
   justify-content: space-between;
@@ -780,10 +741,6 @@ input[type="file"] {
   color: #2b2b2b;
 }
 
-.game-sub {
-  font-size: 12px;
-}
-
 .record-right {
   text-align: right;
 }
@@ -794,16 +751,13 @@ input[type="file"] {
   font-weight: 500;
 }
 
-.record-duration {
+/* 通用样式 */
+.muted, .game-sub, .record-duration, .stat small {
+  color: #7b8794;
   font-size: 12px;
 }
 
-.muted {
-  color: #7b8794;
-  font-size: 13px;
-}
-
-/* alerts */
+/* 提示信息 */
 .alert {
   padding: 12px 14px;
   border-radius: 8px;
@@ -832,7 +786,7 @@ input[type="file"] {
   border-left: 3px solid #169e48;
 }
 
-/* responsive: narrow screens stack */
+/* 响应式设计 */
 @media (max-width: 992px) {
   .content-wrap {
     flex-direction: column;
@@ -841,12 +795,8 @@ input[type="file"] {
     gap: 16px;
   }
 
-  .sidebar {
+  .sidebar, .main-area {
     width: 100%;
-    min-height: auto;
-  }
-
-  .main-area {
     min-height: auto;
   }
 
