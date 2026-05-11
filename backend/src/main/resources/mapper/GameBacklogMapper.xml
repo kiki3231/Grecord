@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ma.grecode.mapper.GameBacklogMapper">
+
+    <resultMap id="BaseResultMap" type="com.ma.grecode.entity.GameBacklog">
+            <id property="id" column="id" />
+            <result property="userId" column="user_id" />
+            <result property="gameId" column="game_id" />
+            <result property="status" column="status" />
+            <result property="priority" column="priority" />
+            <result property="sortOrder" column="sort_order" />
+            <result property="notes" column="notes" />
+            <result property="startedDate" column="started_date" />
+            <result property="completedDate" column="completed_date" />
+            <result property="createBy" column="create_by" />
+            <result property="updateBy" column="update_by" />
+            <result property="createTime" column="create_time" />
+            <result property="updateTime" column="update_time" />
+            <result property="isDelete" column="is_delete" />
+    </resultMap>
+
+    <resultMap id="BacklogWithGame" type="com.ma.grecode.entity.GameBacklog" extends="BaseResultMap">
+        <association property="game" javaType="com.ma.grecode.entity.Game">
+            <id property="id" column="g_id" />
+            <result property="name" column="g_name" />
+            <result property="icon" column="g_icon" />
+            <result property="platforms" column="g_platforms" />
+            <result property="gameTypes" column="g_game_types" />
+            <result property="rating" column="g_rating" />
+        </association>
+    </resultMap>
+
+    <select id="selectBacklogWithGame" resultMap="BacklogWithGame">
+        SELECT b.*, g.id as g_id, g.name as g_name, g.icon as g_icon,
+               g.platforms as g_platforms, g.game_types as g_game_types, g.rating as g_rating
+        FROM game_backlog b
+        LEFT JOIN game g ON b.game_id = g.id
+        WHERE b.user_id = #{userId} AND b.is_delete = 0
+        <if test="status != null">
+            AND b.status = #{status}
+        </if>
+        ORDER BY b.sort_order ASC, b.create_time DESC
+    </select>
+
+    <select id="countByStatus" resultType="java.util.Map">
+        SELECT status, COUNT(*) as count
+        FROM game_backlog
+        WHERE user_id = #{userId} AND is_delete = 0
+        GROUP BY status
+    </select>
+</mapper>

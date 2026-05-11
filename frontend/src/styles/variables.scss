@@ -1,0 +1,139 @@
+/* ============================================================
+   GRecord Design Tokens — Magical Anime / Kawaii
+   Inspired by: pastel magical-girl aesthetics
+   Dark  = deep indigo/purple (default :root)
+   Light = soft cherry-blossom pink
+   ============================================================ */
+
+:root {
+  color-scheme: dark;
+
+  /* === Backgrounds — deep magical night sky === */
+  --bg-primary:       #130820;
+  --bg-secondary:     #1C0F2E;
+  --bg-sidebar:       #170A28;
+  --bg-card:          rgba(190, 110, 255, 0.045);
+  --bg-card-hover:    rgba(190, 110, 255, 0.08);
+  --bg-input:         #250D3C;
+  --bar-track-bg:     rgba(255, 255, 255, 0.07);
+
+  /* === Primary: Sakura Pink ✦ === */
+  --accent:           #FF6EB5;
+  --accent-dim:       rgba(255, 110, 181, 0.14);
+  --accent-glow:      0 0 28px rgba(255, 110, 181, 0.55), 0 0 72px rgba(255, 110, 181, 0.16);
+
+  /* === Secondary: Soft Lavender === */
+  --cyan:             #A78BFA;
+  --cyan-dim:         rgba(167, 139, 250, 0.14);
+  --cyan-glow:        0 0 22px rgba(167, 139, 250, 0.48);
+
+  /* === Tertiary accents === */
+  --rose:             #F472B6;
+  --rose-dim:         rgba(244, 114, 182, 0.12);
+
+  --emerald:          #6EE7B7;
+  --emerald-dim:      rgba(110, 231, 183, 0.12);
+
+  --violet:           #C084FC;
+  --violet-dim:       rgba(192, 132, 252, 0.12);
+
+  --amber:            #FDE68A;
+  --amber-dim:        rgba(253, 230, 138, 0.14);
+
+  /* === Legacy aliases — keep other views working === */
+  --neon-cyan:        #A78BFA;
+  --neon-purple:      #C084FC;
+  --neon-pink:        #F472B6;
+  --neon-green:       #6EE7B7;
+  --neon-blue:        #7DD3FC;
+  --glow-cyan:        0 0 20px rgba(167, 139, 250, 0.42);
+  --glow-purple:      0 0 20px rgba(192, 132, 252, 0.38);
+  --glow-pink:        0 0 20px rgba(244, 114, 182, 0.38);
+  --glow-green:       0 0 20px rgba(110, 231, 183, 0.32);
+  --bg-card-legacy:       #1e0c32;
+  --bg-card-hover-legacy: #2a1040;
+
+  /* === Text === */
+  --text-primary:     #F5EEFF;
+  --text-secondary:   #8868A8;
+  --text-muted:       #3E2660;
+
+  /* === Borders === */
+  --border-color:     rgba(200, 120, 255, 0.1);
+  --border-accent:    rgba(255, 110, 181, 0.38);
+  --border-glow:      rgba(167, 139, 250, 0.2);
+
+  /* === Typography — rounded & friendly === */
+  --font-display: 'Nunito', 'Noto Sans SC', sans-serif;
+  --font-body:    'Noto Sans SC', 'Segoe UI', sans-serif;
+  --font-mono:    'JetBrains Mono', 'Consolas', monospace;
+  --font-hero:    'Nunito', sans-serif;
+
+  /* === Layout — rounder corners === */
+  --border-radius:    12px;
+  --border-radius-lg: 18px;
+  --border-radius-xl: 26px;
+  --sidebar-width:           240px;
+  --sidebar-width-collapsed:  64px;
+  --header-height:    64px;
+
+  /* === Motion — bouncy spring feel === */
+  --transition:        all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast:   all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ============================================================
+   Light Mode — Cherry Blossom Spring
+   ============================================================ */
+[data-theme='light'] {
+  color-scheme: light;
+
+  --bg-primary:       #FFF0F8;
+  --bg-secondary:     #FFE4F3;
+  --bg-sidebar:       #FFD6EE;
+  --bg-card:          rgba(220, 90, 170, 0.045);
+  --bg-card-hover:    rgba(220, 90, 170, 0.085);
+  --bg-input:         #FFC8E8;
+  --bar-track-bg:     rgba(0, 0, 0, 0.07);
+
+  --accent:           #E83A8C;
+  --accent-dim:       rgba(232, 58, 140, 0.11);
+  --accent-glow:      0 0 22px rgba(232, 58, 140, 0.35), 0 0 50px rgba(232, 58, 140, 0.11);
+
+  --cyan:             #7C3AED;
+  --cyan-dim:         rgba(124, 58, 237, 0.1);
+  --cyan-glow:        0 0 18px rgba(124, 58, 237, 0.32);
+
+  --rose:             #DB2777;
+  --rose-dim:         rgba(219, 39, 119, 0.1);
+
+  --emerald:          #059669;
+  --emerald-dim:      rgba(5, 150, 105, 0.1);
+
+  --violet:           #6D28D9;
+  --violet-dim:       rgba(109, 40, 217, 0.1);
+
+  --amber:            #D97706;
+  --amber-dim:        rgba(217, 119, 6, 0.1);
+
+  --neon-cyan:        #7C3AED;
+  --neon-purple:      #6D28D9;
+  --neon-pink:        #DB2777;
+  --neon-green:       #059669;
+  --neon-blue:        #2563EB;
+  --glow-cyan:        0 0 18px rgba(124, 58, 237, 0.28);
+  --glow-purple:      0 0 18px rgba(109, 40, 217, 0.25);
+  --glow-pink:        0 0 18px rgba(219, 39, 119, 0.28);
+  --glow-green:       0 0 18px rgba(5, 150, 105, 0.22);
+  --bg-card-legacy:       #FFE4F2;
+  --bg-card-hover-legacy: #FFCCE7;
+
+  --text-primary:     #2B1040;
+  --text-secondary:   #8B5A9A;
+  --text-muted:       #D4B0E0;
+
+  --border-color:     rgba(200, 70, 160, 0.13);
+  --border-accent:    rgba(232, 58, 140, 0.38);
+  --border-glow:      rgba(124, 58, 237, 0.2);
+}

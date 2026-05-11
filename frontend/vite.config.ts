@@ -19,7 +19,10 @@ export default defineConfig({
       '/avatar': {
         target: 'http://localhost:8080',
         changeOrigin: true
-        // 不需要rewrite，因为我们希望保持/avatar前缀
+      },
+      '/covers': {
+        target: 'http://localhost:8080',
+        changeOrigin: true
       }
     }
   }

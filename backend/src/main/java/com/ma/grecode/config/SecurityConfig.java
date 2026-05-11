@@ -1,63 +1,50 @@
 package com.ma.grecode.config;
 
+import com.ma.grecode.filter.JwtAuthenticationTokenFilter;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import com.ma.grecode.filter.JwtAuthenticationTokenFilter;
 
-/**
- * Spring Security配置
- */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    
-    /**
-     * 配置密码编码器
-     */
-    @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-    
-    /**
-     * 配置安全规则
-     */
+
+    @Autowired
+    private JwtAuthenticationTokenFilter jwtAuthenticationTokenFilter;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
-            // 禁用CSRF
-            .csrf().disable()
-            // 不使用Session
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-            // 配置请求授权规则
-            .authorizeRequests()
-            // 允许匿名访问的接口
-            .antMatchers("/auth/login", "/auth/register").permitAll()
-            // 允许访问头像资源
-            .antMatchers("/avatar/**").permitAll()
-            // Swagger文档
-            .antMatchers("/swagger-ui.html", "/swagger-resources/**", "/v2/api-docs").permitAll()
-            // 其他接口需要认证
-            .anyRequest().authenticated();
-        
-        // 添加JWT认证过滤器
-        httpSecurity.addFilterBefore(jwtAuthenticationTokenFilter(), UsernamePasswordAuthenticationFilter.class);
-        
+            .csrf(AbstractHttpConfigurer::disable)
+            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/auth/login", "/auth/register").permitAll()
+                .requestMatchers("/avatar/**", "/covers/**").permitAll()
+                .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .anyRequest().authenticated()
+            )
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"code\":401,\"msg\":\"未登录或登录已过期，请重新登录\"}");
+                })
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"code\":403,\"msg\":\"权限不足\"}");
+                })
+            );
+
+        httpSecurity.addFilterBefore(jwtAuthenticationTokenFilter, UsernamePasswordAuthenticationFilter.class);
+
         return httpSecurity.build();
-    }
-    
-    /**
-     * 创建JWT认证过滤器
-     */
-    @Bean
-    public JwtAuthenticationTokenFilter jwtAuthenticationTokenFilter() {
-        return new JwtAuthenticationTokenFilter();
     }
 }

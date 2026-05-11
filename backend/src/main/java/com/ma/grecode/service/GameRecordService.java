@@ -1,13 +1,27 @@
 package com.ma.grecode.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.ma.grecode.entity.GameRecord;
 import com.baomidou.mybatisplus.extension.service.IService;
 
-/**
-* @author 19135
-* @description 针对表【game_record(打卡记录表)】的数据库操作Service
-* @createDate 2025-12-08 16:35:49
-*/
+import java.util.List;
+import java.util.Map;
+
 public interface GameRecordService extends IService<GameRecord> {
 
+    GameRecord createRecord(GameRecord record);
+
+    IPage<GameRecord> listRecords(Long userId, int page, int size);
+
+    List<GameRecord> listRecordsWithGame(Long userId);
+
+    List<Map<String, Object>> getHeatmapData(Long userId, int year);
+
+    Map<String, Object> getStats(Long userId);
+
+    List<Map<String, Object>> getTopGames(Long userId, int limit);
+
+    GameRecord updateRecord(Long id, GameRecord record);
+
+    void deleteRecord(Long id);
 }

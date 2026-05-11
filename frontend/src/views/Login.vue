@@ -423,17 +423,6 @@ function getVerificationCode() {
   </div>
 </template>
 
-<style lang="scss">
-/* 全局样式重置 */
-html, body, #app {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-</style>
-
 <style lang="scss" scoped>
 .login-page {
   position: relative;
@@ -991,18 +980,5 @@ html, body, #app {
       }
     }
   }
-}
-</style>
-
-<style lang="scss">
-.login-page {
-  position: relative;
-  height: 100vh;
-  width: 100vw;
-  overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 </style>

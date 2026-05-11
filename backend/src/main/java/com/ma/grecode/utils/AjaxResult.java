@@ -3,23 +3,21 @@ package com.ma.grecode.utils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.ma.grecode.constant.HttpStatus;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.Objects;
 
-@ApiModel("通用返回结果")
+@Schema(description = "通用返回结果")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AjaxResult<T> {
 
-
-    @ApiModelProperty("状态码")
+    @Schema(description = "状态码")
     private Integer code;
 
-    @ApiModelProperty("提示信息")
+    @Schema(description = "提示信息")
     private String msg;
 
-    @ApiModelProperty("数据对象")
+    @Schema(description = "数据对象")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private T data;
 
@@ -36,7 +34,6 @@ public class AjaxResult<T> {
         this.data = data;
     }
 
-    // 工厂方法
     public static <T> AjaxResult<T> success() {
         return success("操作成功", null);
     }
@@ -77,7 +74,6 @@ public class AjaxResult<T> {
         return new AjaxResult<>(code, msg, null);
     }
 
-    // 状态判断（避免被序列化）
     @JsonIgnore
     public boolean isSuccess() { return Objects.equals(HttpStatus.SUCCESS, this.code); }
     @JsonIgnore
@@ -85,12 +81,10 @@ public class AjaxResult<T> {
     @JsonIgnore
     public boolean isError() { return Objects.equals(HttpStatus.ERROR, this.code); }
 
-    // getter/setter
     public Integer getCode() { return code; }
     public void setCode(Integer code) { this.code = code; }
     public String getMsg() { return msg; }
     public void setMsg(String msg) { this.msg = msg; }
     public T getData() { return data; }
     public void setData(T data) { this.data = data; }
-
 }
