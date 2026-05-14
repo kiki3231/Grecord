@@ -39,8 +39,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public AjaxResult<?> handleIllegalArgumentException(IllegalArgumentException e) {
-        log.warn("非法参数: {}", e.getMessage());
-        return AjaxResult.error(400, e.getMessage());
+        String raw = e.getMessage();
+        log.warn("非法参数: {}", raw);
+        // Spring 在控制器参数未显式命名且 class 未带 -parameters 时常抛出英文长句；业务层避免把该句原样弹给前端
+        if (raw != null && raw.contains("parameter name information not available via reflection")) {
+            return AjaxResult.error(400, "请求参数无法解析，请重启后端或重新编译后再试（需启用编译参数名保留）。");
+        }
+        return AjaxResult.error(400, raw != null ? raw : "非法参数");
     }
 
     @ExceptionHandler(Exception.class)

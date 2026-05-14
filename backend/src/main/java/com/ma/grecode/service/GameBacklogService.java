@@ -22,5 +22,6 @@ public interface GameBacklogService extends IService<GameBacklog> {
 
     void removeFromBacklog(Long id);
 
-    Map<String, Object> checkinFromBacklog(Long backlogId, Integer playTime, String notes);
+    Map<String, Object> checkinFromBacklog(Long backlogId, Integer playTime, java.math.BigDecimal rating,
+                                          Integer recordStatus, String notes);
 }

@@ -10,21 +10,31 @@ const backlogStore = useBacklogStore()
 const keyword = ref('')
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 
-const wishToast = ref<{ visible: boolean; type: 'add' | 'remove'; name: string }>({
-  visible: false, type: 'add', name: ''
+/**
+ * 爱心点击后的 toast 类型：
+ *   add    - 从"无记录" 新增 → 想玩
+ *   switch - 已有记录但 status!=0 → 改为想玩
+ *   remove - 已是想玩 → 取消想玩，从清单移除
+ */
+type WishToastType = 'add' | 'switch' | 'remove'
+const statusLabels: Record<number, string> = { 0: '想玩', 1: '在玩', 2: '已完成', 3: '已搁置' }
+
+const wishToast = ref<{ visible: boolean; type: WishToastType; name: string; prevStatus?: number }>({
+  visible: false, type: 'add', name: '', prevStatus: undefined
 })
 let toastTimer: ReturnType<typeof setTimeout> | null = null
 
-function showToast(type: 'add' | 'remove', name: string) {
+function showToast(type: WishToastType, name: string, prevStatus?: number) {
   if (toastTimer) clearTimeout(toastTimer)
-  wishToast.value = { visible: true, type, name }
+  wishToast.value = { visible: true, type, name, prevStatus }
   toastTimer = setTimeout(() => { wishToast.value.visible = false }, 1800)
 }
 
 async function onToggleWish(game: Game, ev: MouseEvent) {
   ev.stopPropagation()
   if (backlogStore.wishPending.has(game.id)) return
-  const wasIn = backlogStore.isInBacklog(game.id)
+  // 记录点击前的状态，便于事后判断本次属于哪种切换
+  const prevStatus = backlogStore.getBacklogStatus(game.id)
   const res = await backlogStore.toggleWish(game.id, {
     id: game.id,
     name: game.name,
@@ -35,18 +45,43 @@ async function onToggleWish(game: Game, ev: MouseEvent) {
   })
   if (!res) return
   if (res.code === 200) {
-    showToast(wasIn ? 'remove' : 'add', game.name)
+    let toastType: WishToastType
+    if (prevStatus === 0) {
+      toastType = 'remove'
+    } else if (prevStatus === null) {
+      toastType = 'add'
+    } else {
+      toastType = 'switch'
+    }
+    showToast(toastType, game.name, prevStatus ?? undefined)
   } else if (res.code === 409) {
-    // 后端已存在(可能跨标签同步) → 静默拉一次让 UI 对齐
-    await backlogStore.fetchBacklog()
+    // 后端已存在(可能跨标签同步) → 只刷新 wish 映射，避免动 Backlog 页 tab 下的 items
+    await backlogStore.refreshWishMap()
   } else {
     console.warn('[toggleWish] 失败：', res)
   }
 }
 
+/** 爱心按钮的 hover 提示文案，针对不同 status 给出更精准的语义 */
+function getWishTitle(gameId: number): string {
+  const s = backlogStore.getBacklogStatus(gameId)
+  if (s === 0) return '取消想玩（从清单移除）'
+  if (s === 1) return `当前为「${statusLabels[1]}」，点击改为「想玩」`
+  if (s === 2) return `当前为「${statusLabels[2]}」，点击改为「想玩」`
+  if (s === 3) return `当前为「${statusLabels[3]}」，点击改为「想玩」`
+  return '加入想玩清单'
+}
+
+/** Toast 中"原状态"的中文文案，避免在模板里用 ?? 操作符引发解析器报错 */
+function getPrevStatusLabel(s: number | undefined): string {
+  if (s === undefined || s === null) return '其他'
+  return statusLabels[s] || '其他'
+}
+
 onMounted(() => {
   gameStore.fetchFilters()
-  backlogStore.ensureBacklogLoaded()
+  // 只拉 wishlist 映射，不替换 backlog.items（避免影响 Backlog 页面 tab 过滤状态）
+  backlogStore.refreshWishMap()
   if (gameStore.libraryGames.length === 0) {
     gameStore.fetchLibrary({ reset: true })
   }
@@ -290,8 +325,8 @@ watch(() => gameStore.libraryGames.length, () => initObserver())
       </div>
     </section>
 
-    <!-- ── Skeleton ── -->
-    <div v-if="gameStore.libraryLoading && gameStore.libraryGames.length === 0" class="game-grid">
+    <!-- ── Skeleton：游戏加载中 或 wishmap 尚未就绪（确保首次显示时心形已有正确状态）── -->
+    <div v-if="(gameStore.libraryLoading && gameStore.libraryGames.length === 0) || !backlogStore.wishMapLoaded" class="game-grid">
       <div v-for="i in 24" :key="i" class="sk-card">
         <div class="sk-cover" />
         <div class="sk-body">
@@ -301,7 +336,7 @@ watch(() => gameStore.libraryGames.length, () => initObserver())
       </div>
     </div>
 
-    <!-- ── Game Grid ── -->
+    <!-- ── Game Grid（wishmap 已就绪时才展示，心形状态与卡片同步出现）── -->
     <div v-else ref="gridRef" class="game-grid">
       <div
         v-for="game in gameStore.libraryGames"
@@ -320,16 +355,16 @@ watch(() => gameStore.libraryGames.length, () => initObserver())
             <span class="fb-initial">{{ getInitial(game.name) }}</span>
           </div>
 
-          <!-- ♥ Wishlist toggle (top-left) -->
+          <!-- ♥ Wishlist toggle (top-left)。红心仅当 status===0 时亮起 -->
           <button
             type="button"
             :class="[
               'wish-btn',
-              backlogStore.isInBacklog(game.id) ? 'is-on' : '',
+              backlogStore.isWanted(game.id) ? 'is-on' : '',
               backlogStore.wishPending.has(game.id) ? 'is-busy' : '',
             ]"
-            :title="backlogStore.isInBacklog(game.id) ? '从想玩清单移除' : '加入想玩清单'"
-            :aria-pressed="backlogStore.isInBacklog(game.id)"
+            :title="getWishTitle(game.id)"
+            :aria-pressed="backlogStore.isWanted(game.id)"
             @click.stop="onToggleWish(game, $event)"
           >
             <svg class="heart-ico" viewBox="0 0 24 24" width="14" height="14">
@@ -414,14 +449,20 @@ watch(() => gameStore.libraryGames.length, () => initObserver())
     <!-- Wishlist toast -->
     <Transition name="toast-fade">
       <div v-if="wishToast.visible" :class="['wish-toast', wishToast.type]">
-        <svg v-if="wishToast.type === 'add'" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+        <svg v-if="wishToast.type !== 'remove'" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
           <path d="M12 21s-7.5-4.5-9.5-9.2C1.1 8.4 3 5 6.3 5c2 0 3.4 1.1 4.2 2.4h.9C12.3 6.1 13.7 5 15.7 5 19 5 20.9 8.4 19.5 11.8 17.5 16.5 12 21 12 21z"/>
         </svg>
         <svg v-else viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
           <path d="M18 6L6 18M6 6l12 12"/>
         </svg>
         <span class="toast-msg">
-          <strong>{{ wishToast.type === 'add' ? '已加入想玩' : '已移除' }}</strong>
+          <strong>
+            <template v-if="wishToast.type === 'add'">已加入想玩</template>
+            <template v-else-if="wishToast.type === 'switch'">
+              已从「{{ getPrevStatusLabel(wishToast.prevStatus) }}」改为「想玩」
+            </template>
+            <template v-else>已从清单移除</template>
+          </strong>
           <span class="toast-name">{{ wishToast.name }}</span>
         </span>
       </div>

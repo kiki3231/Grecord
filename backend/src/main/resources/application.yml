@@ -5,16 +5,6 @@ mybatis-plus:
 spring:
   main:
     allow-bean-definition-overriding: true
-  devtools:
-    restart:
-      enabled: true
-      poll-interval: 1s
-      quiet-period: 400ms
-      additional-paths: src/main/java
-      # 改 covers / avatar 等静态资源不需要重启 Spring 上下文
-      exclude: static/**,public/**,META-INF/resources/**,META-INF/maven/**
-    livereload:
-      enabled: false
   datasource:
     url: jdbc:mysql://${DB_HOST:127.0.0.1}:${DB_PORT:3306}/${DB_NAME:grecord}?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
     username: ${DB_USERNAME:root}

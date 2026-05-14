@@ -38,7 +38,7 @@ public class GameController {
 
     @Operation(summary = "游戏详情")
     @GetMapping("/{id}")
-    public AjaxResult<?> detail(@PathVariable Long id) {
+    public AjaxResult<?> detail(@PathVariable("id") Long id) {
         return AjaxResult.success(gameService.getGameDetail(id));
     }
 
@@ -51,8 +51,8 @@ public class GameController {
     @Operation(summary = "热门游戏")
     @GetMapping("/hot")
     public AjaxResult<?> hot(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size) {
         return AjaxResult.success(gameService.getHotGames(page, size));
     }
 }

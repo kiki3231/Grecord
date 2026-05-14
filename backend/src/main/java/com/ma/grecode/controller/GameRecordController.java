@@ -30,8 +30,8 @@ public class GameRecordController {
     @Operation(summary = "打卡历史列表")
     @GetMapping("/list")
     public AjaxResult<?> list(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size) {
         Long userId = SecurityUtils.getCurrentUserId();
         return AjaxResult.success(gameRecordService.listRecords(userId, page, size));
     }
@@ -45,7 +45,7 @@ public class GameRecordController {
 
     @Operation(summary = "热力图数据")
     @GetMapping("/heatmap")
-    public AjaxResult<?> heatmap(@RequestParam(required = false) Integer year) {
+    public AjaxResult<?> heatmap(@RequestParam(name = "year", required = false) Integer year) {
         Long userId = SecurityUtils.getCurrentUserId();
         if (year == null) year = LocalDate.now().getYear();
         return AjaxResult.success(gameRecordService.getHeatmapData(userId, year));
@@ -63,13 +63,13 @@ public class GameRecordController {
 
     @Operation(summary = "修改打卡记录")
     @PutMapping("/{id}")
-    public AjaxResult<?> update(@PathVariable Long id, @RequestBody GameRecord record) {
+    public AjaxResult<?> update(@PathVariable("id") Long id, @RequestBody GameRecord record) {
         return AjaxResult.success("修改成功", gameRecordService.updateRecord(id, record));
     }
 
     @Operation(summary = "删除打卡记录")
     @DeleteMapping("/{id}")
-    public AjaxResult<?> delete(@PathVariable Long id) {
+    public AjaxResult<?> delete(@PathVariable("id") Long id) {
         gameRecordService.deleteRecord(id);
         return AjaxResult.success("删除成功");
     }

@@ -17,7 +17,7 @@ export async function updateBacklogApi(id: number, payload: Record<string, unkno
   return data
 }
 
-export async function updateBacklogStatusApi(id: number, status: number) {
+export async function updateBacklogStatusApi(id: number, status: number | null) {
   const { data } = await http.put(`/backlog/${id}/status`, { status })
   return data
 }
@@ -32,7 +32,15 @@ export async function removeBacklogApi(id: number) {
   return data
 }
 
-export async function checkinFromBacklogApi(backlogId: number, playTime: number, notes?: string) {
-  const { data } = await http.post(`/backlog/${backlogId}/checkin`, { playTime, notes })
+/** 与「今日打卡」一致：playTime 为总分钟数；status 为记录状态 1–4；rating 为 1–10 */
+export interface BacklogCheckinPayload {
+  playTime: number
+  notes?: string
+  rating?: number
+  status?: number
+}
+
+export async function checkinFromBacklogApi(backlogId: number, payload: BacklogCheckinPayload) {
+  const { data } = await http.post(`/backlog/${backlogId}/checkin`, payload)
   return data
 }

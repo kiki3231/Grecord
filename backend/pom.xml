@@ -70,13 +70,6 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- 开发热重载：保存 .java 后自动重启 Spring 上下文 -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <scope>runtime</scope>
-            <optional>true</optional>
-        </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
@@ -132,6 +125,10 @@
                     <target>17</target>
                     <encoding>UTF-8</encoding>
                     <parameters>true</parameters>
+                    <!-- 与 parameters 同效双保险，避免部分 IDE/增量编译未写入方法参数名 -->
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>
