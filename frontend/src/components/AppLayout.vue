@@ -730,6 +730,8 @@ const pageTitle = computed(() => {
   justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
+  /* 强制 GPU 合成层，确保 border-radius + overflow:hidden 裁剪从首帧生效 */
+  transform: translateZ(0);
   /* Double ring effect */
   box-shadow:
     0 0 0 2px var(--bg-secondary),
@@ -737,6 +739,7 @@ const pageTitle = computed(() => {
     0 0 14px rgba(255, 110, 181, 0.4);
 
   img {
+    display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;

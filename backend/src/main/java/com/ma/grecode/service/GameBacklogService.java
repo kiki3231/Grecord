@@ -24,4 +24,10 @@ public interface GameBacklogService extends IService<GameBacklog> {
 
     Map<String, Object> checkinFromBacklog(Long backlogId, Integer playTime, java.math.BigDecimal rating,
                                           Integer recordStatus, String notes);
+
+    /**
+     * 「游戏打卡」等写入 {@link com.ma.grecode.entity.GameRecord} 后调用：
+     * 若清单中已有该游戏则更新状态；若尚未在清单则自动新增一条（状态与本次打卡一致，映射同清单内打卡）。
+     */
+    void syncBacklogAfterGameRecord(Long gameId, Integer recordStatus);
 }

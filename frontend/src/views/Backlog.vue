@@ -41,7 +41,8 @@ const tabs = [
   { value: 0, label: '想玩' },
   { value: 1, label: '在玩' },
   { value: 2, label: '已完成' },
-  { value: 3, label: '已搁置' }
+  { value: 3, label: '已搁置' },
+  { value: 4, label: '已白金' }
 ]
 
 function switchTab(status: number | undefined) {
@@ -86,6 +87,7 @@ function openCheckin(item: BacklogItem) {
   else if (s === 1) checkinRecordStatus.value = 1
   else if (s === 2) checkinRecordStatus.value = 2
   else if (s === 3) checkinRecordStatus.value = 3
+  else if (s === 4) checkinRecordStatus.value = 4
   else checkinRecordStatus.value = 1
   checkinNotes.value = ''
   showCheckinModal.value = true
@@ -132,8 +134,8 @@ async function onDragEnd() {
   await backlogStore.batchSort(sortList)
 }
 
-const statusLabels: Record<number, string> = { 0: '想玩', 1: '在玩', 2: '已完成', 3: '已搁置' }
-const statusColors: Record<number, string> = { 0: 'var(--neon-blue)', 1: 'var(--neon-cyan)', 2: 'var(--neon-green)', 3: 'var(--text-muted)' }
+const statusLabels: Record<number, string> = { 0: '想玩', 1: '在玩', 2: '已完成', 3: '已搁置', 4: '已白金' }
+const statusColors: Record<number, string> = { 0: 'var(--neon-blue)', 1: 'var(--neon-cyan)', 2: 'var(--neon-green)', 3: 'var(--text-muted)', 4: 'var(--neon-purple)' }
 
 function getStatusLabel(status: number | null): string {
   if (status === null || status === undefined) return '未分类'
@@ -165,9 +167,10 @@ function nextStatusLabel(current: number | null): string {
       <button
         v-for="tab in tabs"
         :key="String(tab.value)"
-        :class="['tab-btn', { active: activeTab === tab.value }]"
+        :class="['tab-btn', { active: activeTab === tab.value, platinum: tab.value === 4 }]"
         @click="switchTab(tab.value)"
       >
+        <span v-if="tab.value === 4">💎</span>
         {{ tab.label }}
         <span class="badge">{{ tab.value === undefined ? totalCount : getCount(tab.value) }}</span>
       </button>
@@ -336,6 +339,16 @@ function nextStatusLabel(current: number | null): string {
     border-color: var(--neon-cyan);
     background: rgba(0, 240, 255, 0.1);
     color: var(--neon-cyan);
+  }
+
+  &.platinum {
+    &:hover { border-color: var(--neon-purple); }
+    &.active {
+      border-color: var(--neon-purple);
+      background: rgba(167, 139, 250, 0.12);
+      color: var(--neon-purple);
+      box-shadow: 0 0 12px rgba(167, 139, 250, 0.2);
+    }
   }
 }
 

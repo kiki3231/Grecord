@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { getHeatmapApi, getStatsApi, getRecordsWithGameApi, createRecordApi } from '@/api/record'
+import { useBacklogStore } from '@/stores/backlog'
 
 export interface HeatmapItem {
   date: string
@@ -44,6 +45,11 @@ export const useRecordStore = defineStore('record', () => {
       if (res.code === 200) {
         await fetchHeatmap()
         await fetchStats()
+        try {
+          await useBacklogStore().fetchBacklog()
+        } catch (e) {
+          console.warn('[record.createRecord] 刷新清单失败（可忽略）：', e)
+        }
       }
       return res
     } finally {

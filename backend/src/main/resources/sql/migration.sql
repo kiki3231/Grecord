@@ -13,8 +13,11 @@ ALTER TABLE game
 
 -- 修改 game_record 表：新增 rating 和 status 字段
 ALTER TABLE game_record
-  ADD COLUMN IF NOT EXISTS rating DECIMAL(2,1) COMMENT '用户评分 1.0-10.0',
+  ADD COLUMN IF NOT EXISTS rating DECIMAL(3,1) COMMENT '用户评分 1.0-10.0',
   ADD COLUMN IF NOT EXISTS status TINYINT DEFAULT 1 COMMENT '1在玩 2已通关 3已搁置 4白金';
+
+-- 修复 game_record.rating 列精度（DECIMAL(2,1) 最大只能存 9.9，评分 10.0 会溢出）
+ALTER TABLE game_record MODIFY COLUMN rating DECIMAL(3,1) COMMENT '用户评分 1.0-10.0';
 
 -- 新建 game_backlog 表
 CREATE TABLE IF NOT EXISTS game_backlog (

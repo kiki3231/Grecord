@@ -24,7 +24,8 @@ public class GameRecordController {
     @Operation(summary = "新建打卡记录")
     @PostMapping
     public AjaxResult<?> create(@RequestBody GameRecord record) {
-        return AjaxResult.success("打卡成功", gameRecordService.createRecord(record));
+        GameRecord saved = gameRecordService.createRecord(record);
+        return AjaxResult.success("打卡成功", saved);
     }
 
     @Operation(summary = "打卡历史列表")
@@ -64,7 +65,8 @@ public class GameRecordController {
     @Operation(summary = "修改打卡记录")
     @PutMapping("/{id}")
     public AjaxResult<?> update(@PathVariable("id") Long id, @RequestBody GameRecord record) {
-        return AjaxResult.success("修改成功", gameRecordService.updateRecord(id, record));
+        GameRecord saved = gameRecordService.updateRecord(id, record);
+        return AjaxResult.success("修改成功", saved);
     }
 
     @Operation(summary = "删除打卡记录")

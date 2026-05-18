@@ -7,13 +7,16 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.ma.grecode.entity.GameRecord;
 import com.ma.grecode.exception.BusinessException;
 import com.ma.grecode.mapper.GameRecordMapper;
+import com.ma.grecode.service.GameBacklogService;
 import com.ma.grecode.service.GameRecordService;
 import com.ma.grecode.utils.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -34,7 +37,24 @@ public class GameRecordServiceImpl extends ServiceImpl<GameRecordMapper, GameRec
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
+    /** 与 GameBacklogServiceImpl 互相引用，必须 @Lazy 避免循环依赖导致注入失败（表现为只写入 record、不同步 backlog） */
+    @Autowired
+    @Lazy
+    private GameBacklogService gameBacklogService;
+
+    /**
+     * 打卡写入 game_record 后同步 game_backlog（清单无则自动加入），保证所有调用 createRecord 的入口行为一致。
+     */
+    private void syncBacklogAfterPersistedRecord(GameRecord saved) {
+        if (saved == null || saved.getGameId() == null) {
+            return;
+        }
+        Integer st = saved.getStatus() != null ? saved.getStatus() : 1;
+        gameBacklogService.syncBacklogAfterGameRecord(saved.getGameId(), st);
+    }
+
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public GameRecord createRecord(GameRecord record) {
         Long userId = SecurityUtils.getCurrentUserId();
         if (record.getGameId() == null) {
@@ -59,6 +79,7 @@ public class GameRecordServiceImpl extends ServiceImpl<GameRecordMapper, GameRec
             existing.setUpdateTime(now);
             updateById(existing);
             evictHeatmapCache(userId, recordDate);
+            syncBacklogAfterPersistedRecord(existing);
             return existing;
         }
 
@@ -69,6 +90,7 @@ public class GameRecordServiceImpl extends ServiceImpl<GameRecordMapper, GameRec
         record.setUpdateTime(now);
         save(record);
         evictHeatmapCache(userId, recordDate);
+        syncBacklogAfterPersistedRecord(record);
         return record;
     }
 
@@ -140,6 +162,7 @@ public class GameRecordServiceImpl extends ServiceImpl<GameRecordMapper, GameRec
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public GameRecord updateRecord(Long id, GameRecord record) {
         GameRecord existing = getById(id);
         if (existing == null || existing.getIsDelete() == 1) {
@@ -158,7 +181,9 @@ public class GameRecordServiceImpl extends ServiceImpl<GameRecordMapper, GameRec
         if (record.getRecordDate() != null) {
             evictHeatmapCache(userId, record.getRecordDate());
         }
-        return getById(id);
+        GameRecord saved = getById(id);
+        syncBacklogAfterPersistedRecord(saved);
+        return saved;
     }
 
     @Override

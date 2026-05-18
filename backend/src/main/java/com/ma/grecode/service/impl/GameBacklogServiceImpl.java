@@ -136,7 +136,7 @@ public class GameBacklogServiceImpl extends ServiceImpl<GameBacklogMapper, GameB
             if (newStatus == 1 && existing.getStartedDate() == null) {
                 existing.setStartedDate(now);
             }
-            if (newStatus == 2) {
+            if (newStatus == 2 || newStatus == 4) {
                 existing.setCompletedDate(now);
             }
             updateById(existing);
@@ -178,15 +178,58 @@ public class GameBacklogServiceImpl extends ServiceImpl<GameBacklogMapper, GameB
 
     /**
      * 与「今日打卡」页一致：record.status 为 1在玩 2通关 3搁置 4白金；
-     * 同步到清单：1→在玩，2/4→已完成，3→搁置（想玩 tab 仅含 status=0）。
+     * 同步到清单：1→在玩，2→已完成，3→搁置，4→已白金（独立 tab）。
      */
     private int recordStatusToBacklogStatus(int recordStatus) {
         return switch (recordStatus) {
             case 1 -> 1;
-            case 2, 4 -> 2;
+            case 2 -> 2;
             case 3 -> 3;
+            case 4 -> 4;
             default -> 1;
         };
+    }
+
+    @Override
+    public void syncBacklogAfterGameRecord(Long gameId, Integer recordStatus) {
+        if (gameId == null || recordStatus == null) {
+            return;
+        }
+        int rs = recordStatus;
+        if (rs < 1 || rs > 4) {
+            return;
+        }
+        Long userId = SecurityUtils.getCurrentUserId();
+        LambdaQueryWrapper<GameBacklog> q = new LambdaQueryWrapper<GameBacklog>()
+                .eq(GameBacklog::getUserId, userId)
+                .eq(GameBacklog::getGameId, gameId)
+                .eq(GameBacklog::getIsDelete, 0)
+                .last("LIMIT 1");
+        GameBacklog backlog = getOne(q, false);
+        int newStatus = recordStatusToBacklogStatus(rs);
+        if (backlog != null) {
+            if (Objects.equals(backlog.getStatus(), newStatus)) {
+                return;
+            }
+            updateStatus(backlog.getId(), newStatus);
+            return;
+        }
+        // 清单中尚无该游戏：根据本次打卡状态自动加入（否则「游戏打卡」页只有记录、清单永远为空）
+        GameBacklog nb = new GameBacklog();
+        nb.setGameId(gameId);
+        nb.setStatus(newStatus);
+        try {
+            addToBacklog(nb);
+        } catch (BusinessException ex) {
+            if (ex.getCode() == 409) {
+                GameBacklog again = getOne(q, false);
+                if (again != null && !Objects.equals(again.getStatus(), newStatus)) {
+                    updateStatus(again.getId(), newStatus);
+                }
+            } else {
+                throw ex;
+            }
+        }
     }
 
     @Override
