@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useTheme } from '@/composables/useTheme'
+import BrandLogo from '@/components/brand/BrandLogo.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -104,9 +105,7 @@ const pageTitle = computed(() => {
       <!-- Logo -->
       <div class="sb-header">
         <router-link to="/" class="logo" :title="!sidebarOpen ? 'GRecord' : undefined">
-          <div class="logo-orb">
-            <span class="logo-letter">G</span>
-          </div>
+          <BrandLogo size="md" class="logo-mark" />
           <div v-show="sidebarOpen" class="logo-text-wrap">
             <span class="logo-text">GRecord</span>
             <span class="logo-sub">ゲーム記録 ♪</span>
@@ -202,7 +201,13 @@ const pageTitle = computed(() => {
           <!-- User area -->
           <div class="user-trigger" @click="showDropdown = !showDropdown">
             <div class="avatar-orb">
-              <img v-if="userStore.user.avatar" :src="userStore.user.avatar" alt="" />
+              <img
+                v-if="userStore.avatarSrc"
+                :key="userStore.avatarSrc"
+                :src="userStore.avatarSrc"
+                alt=""
+                @error="userStore.onAvatarError"
+              />
               <span v-else class="avatar-letter">{{ userInitial }}</span>
             </div>
             <div class="user-info">
@@ -323,31 +328,15 @@ const pageTitle = computed(() => {
   text-decoration: none;
 }
 
-/* Circular orb logo badge */
-.logo-orb {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #FF6EB5 0%, #A78BFA 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 0 18px rgba(255, 110, 181, 0.6), 0 0 40px rgba(167, 139, 250, 0.2);
+.logo-mark {
   transition: var(--transition-bounce);
 
-  .logo:hover & {
+  .logo:hover & :deep(.brand-logo__orb) {
     transform: scale(1.1) rotate(10deg);
-    box-shadow: 0 0 28px rgba(255, 110, 181, 0.85), 0 0 60px rgba(167, 139, 250, 0.35);
+    box-shadow:
+      0 0 28px rgba(255, 110, 181, 0.85),
+      0 0 60px rgba(167, 139, 250, 0.35);
   }
-}
-
-.logo-letter {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 20px;
-  color: #fff;
-  line-height: 1;
 }
 
 .logo-text-wrap {

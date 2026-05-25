@@ -1,0 +1,21 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="GRecord">
+  <defs>
+    <linearGradient id="grec-bg" x1="14" y1="8" x2="86" y2="92">
+      <stop offset="0%" stop-color="#FF5CAA"/>
+      <stop offset="50%" stop-color="#D78CEB"/>
+      <stop offset="100%" stop-color="#8B7CF8"/>
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="50" r="48" fill="url(#grec-bg)"/>
+  <path
+    fill="none"
+    stroke="#fff"
+    stroke-width="4.5"
+    stroke-linejoin="round"
+    stroke-linecap="round"
+    d="M 36 36 H 64 C 70 36 74 40 74 46 V 50 C 74 56 70 60 64 60 H 58 L 52 66 C 50 68 50 68 48 66 L 42 60 H 36 C 30 60 26 56 26 50 V 46 C 26 40 30 36 36 36 Z"
+  />
+  <path fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" d="M 36 45 H 42 M 39 42 V 48"/>
+  <circle cx="60" cy="44" r="2.2" fill="#fff"/>
+  <circle cx="64.5" cy="48" r="2.2" fill="#fff"/>
+</svg>

@@ -40,5 +40,6 @@ token:
   expireTime: ${JWT_EXPIRE_MINUTES:20160}
 
 avatar:
-  upload.path: D:/GRecord/backend/target/classes/static/avatar
+  # 与 WebMvc 静态映射共用同一目录，上传后立即可访问（勿用 target/classes，避免重启丢失）
+  upload.path: D:/GRecord/data/avatar
   access.path: /avatar

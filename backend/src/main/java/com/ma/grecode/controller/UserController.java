@@ -6,6 +6,8 @@ import com.ma.grecode.utils.AjaxResult;
 import com.ma.grecode.utils.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
@@ -13,18 +15,29 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 @Tag(name = "用户模块")
 @RestController
 @RequestMapping("/user")
 public class UserController {
 
+    private static final Logger log = LoggerFactory.getLogger(UserController.class);
+
+    private static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(
+            "image/jpeg", "image/jpg", "image/pjpeg", "image/png",
+            "image/gif", "image/webp", "image/bmp"
+    );
+
     @Autowired
     private UserService userService;
 
-    @Value("${avatar.upload.path:/upload/avatar}")
+    @Value("${avatar.upload.path}")
     private String avatarUploadPath;
 
     @Value("${avatar.access.path:/avatar}")
@@ -62,7 +75,10 @@ public class UserController {
 
     @Operation(summary = "上传头像")
     @PostMapping("/avatar")
-    public AjaxResult<?> uploadAvatar(@RequestParam("avatar") MultipartFile avatarFile) {
+    public AjaxResult<?> uploadAvatar(@RequestParam(value = "avatar", required = false) MultipartFile avatarFile) {
+        if (avatarFile == null) {
+            return AjaxResult.error(400, "请选择头像文件");
+        }
         try {
             User currentUser = SecurityUtils.getCurrentUser();
             User dbUser = userService.selectUserByUsername(currentUser.getUsername());
@@ -75,48 +91,76 @@ public class UserController {
             }
 
             String contentType = avatarFile.getContentType();
-            if (contentType == null || !contentType.startsWith("image/")) {
+            if (contentType == null || !contentType.toLowerCase(Locale.ROOT).startsWith("image/")) {
                 return AjaxResult.error(400, "只能上传图片类型文件");
             }
-
-            List<String> allowedContentTypes = Arrays.asList(
-                "image/jpeg", "image/png", "image/gif", "image/webp", "image/bmp"
-            );
-            if (!allowedContentTypes.contains(contentType)) {
-                return AjaxResult.error(400, "只支持JPEG、PNG、GIF、WebP、BMP格式");
+            String normalizedType = contentType.toLowerCase(Locale.ROOT);
+            if (!ALLOWED_CONTENT_TYPES.contains(normalizedType)) {
+                log.warn("头像 Content-Type 未在白名单: {}", contentType);
+                return AjaxResult.error(400, "只支持 JPEG、PNG、GIF、WebP、BMP 格式");
             }
 
             if (avatarFile.getSize() > 10 * 1024 * 1024) {
                 return AjaxResult.error(400, "头像文件大小不能超过10MB");
             }
 
-            String originalFilename = avatarFile.getOriginalFilename();
-            String suffix = (originalFilename != null && originalFilename.contains("."))
-                    ? originalFilename.substring(originalFilename.lastIndexOf(".")) : ".jpg";
+            String suffix = resolveImageSuffix(avatarFile.getOriginalFilename(), normalizedType);
             String fileName = "user_" + dbUser.getId() + "_avatar" + suffix;
 
-            File uploadDir = new File(avatarUploadPath);
-            if (!uploadDir.exists()) {
-                uploadDir.mkdirs();
-            }
+            Path uploadDir = Paths.get(avatarUploadPath).toAbsolutePath().normalize();
+            Files.createDirectories(uploadDir);
 
-            if (dbUser.getAvatar() != null && !dbUser.getAvatar().isEmpty()) {
-                String oldFileName = dbUser.getAvatar().substring(dbUser.getAvatar().lastIndexOf("/") + 1);
-                File oldFile = new File(uploadDir, oldFileName);
-                if (oldFile.exists()) {
-                    oldFile.delete();
+            String oldFileName = extractAvatarFileName(dbUser.getAvatar());
+            if (oldFileName != null) {
+                Path oldPath = uploadDir.resolve(oldFileName);
+                try {
+                    Files.deleteIfExists(oldPath);
+                } catch (IOException e) {
+                    log.warn("删除旧头像失败: {}", oldPath, e);
                 }
             }
 
-            avatarFile.transferTo(new File(uploadDir, fileName));
+            Path targetPath = uploadDir.resolve(fileName);
+            avatarFile.transferTo(targetPath.toFile());
 
-            String avatarUrl = avatarAccessPath + "/" + fileName;
+            String accessPrefix = avatarAccessPath.startsWith("/") ? avatarAccessPath : "/" + avatarAccessPath;
+            String avatarUrl = accessPrefix + "/" + fileName;
             dbUser.setAvatar(avatarUrl);
             userService.updateById(dbUser);
 
+            log.info("头像上传成功 userId={} path={}", dbUser.getId(), targetPath);
             return AjaxResult.success("头像上传成功", avatarUrl);
         } catch (IOException e) {
+            log.error("头像上传 IO 失败", e);
             return AjaxResult.error(500, "头像上传失败：" + e.getMessage());
         }
+    }
+
+    private static String extractAvatarFileName(String avatarUrl) {
+        if (avatarUrl == null || avatarUrl.isBlank()) {
+            return null;
+        }
+        String path = avatarUrl.split("\\?")[0].trim();
+        int slash = path.lastIndexOf('/');
+        if (slash < 0 || slash >= path.length() - 1) {
+            return null;
+        }
+        return path.substring(slash + 1);
+    }
+
+    private static String resolveImageSuffix(String originalFilename, String contentType) {
+        if (originalFilename != null && originalFilename.contains(".")) {
+            String ext = originalFilename.substring(originalFilename.lastIndexOf('.')).toLowerCase(Locale.ROOT);
+            if (ext.matches("\\.(jpg|jpeg|png|gif|webp|bmp)")) {
+                return ext.equals(".jpeg") ? ".jpg" : ext;
+            }
+        }
+        return switch (contentType) {
+            case "image/png" -> ".png";
+            case "image/gif" -> ".gif";
+            case "image/webp" -> ".webp";
+            case "image/bmp" -> ".bmp";
+            default -> ".jpg";
+        };
     }
 }

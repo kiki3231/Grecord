@@ -116,8 +116,8 @@ async function uploadAvatar(file: File) {
     fd.append('avatar', file)
     const res = await uploadAvatarApi(fd)
     if (res.code === 200 && typeof res.data === 'string') {
-      const avatarUrl = res.data + '?t=' + Date.now()
-      previewAvatar.value = avatarUrl
+      userStore.applyAvatar(res.data)
+      previewAvatar.value = null
       await userStore.fetchUserInfo()
       success.value = '头像上传成功 ✨'
       setTimeout(() => (success.value = ''), 2500)
@@ -166,14 +166,16 @@ async function uploadAvatar(file: File) {
           <div class="av-ring r2" />
           <!-- Avatar -->
           <div class="avatar-inner">
-            <div v-if="!previewAvatar && !userStore.user.avatar" class="avatar-initial">
+            <div v-if="!previewAvatar && !userStore.avatarSrc" class="avatar-initial">
               {{ avatarInitial }}
             </div>
             <img
               v-else
-              :src="previewAvatar || userStore.user.avatar"
+              :key="previewAvatar || userStore.avatarSrc"
+              :src="previewAvatar || userStore.avatarSrc"
               alt="avatar"
               class="avatar-img"
+              @error="!previewAvatar && userStore.onAvatarError()"
             />
             <div class="avatar-hover-mask">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

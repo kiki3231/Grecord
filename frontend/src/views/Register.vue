@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { registerApi } from '../api/auth'
+import BrandLogo from '@/components/brand/BrandLogo.vue'
 
 const router = useRouter()
 const username = ref('')
@@ -81,7 +82,7 @@ async function onSubmit() {
     <div class="login-page">
         <div class="card">
             <div class="brand-container">
-                <div class="brand-icon">G</div>
+                <BrandLogo size="lg" />
                 <h1>GRecord</h1>
             </div>
             <p class="subtitle">游戏记录打卡 · 注册</p>
@@ -257,20 +258,6 @@ async function onSubmit() {
     margin-bottom: 0.5rem;
 }
 
-.brand-icon {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
-    border-radius: var(--radius-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 800;
-    font-size: 1.5rem;
-    box-shadow: var(--shadow-md);
-}
-
 h1 {
     margin: 0;
     font-size: 2rem;
@@ -439,11 +426,9 @@ form {
     h1 {
         font-size: 1.75rem;
     }
-    
-    .brand-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 1.25rem;
+
+    .brand-container :deep(.brand-logo) {
+        --brand-logo-size: 40px;
     }
 }
 </style>

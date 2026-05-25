@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, ref } from 'vue'
 import { useRecordStore } from '@/stores/record'
 import { useUserStore } from '@/stores/user'
 import { useTheme } from '@/composables/useTheme'
+import DashboardTodayMission from '@/components/dashboard/DashboardTodayMission.vue'
+import { analyzeHeatmap, localDateKey } from '@/utils/heatmapAnalytics'
 import VChart from 'vue-echarts'
 import { use } from 'echarts/core'
 import { HeatmapChart } from 'echarts/charts'
@@ -16,13 +18,24 @@ const userStore = useUserStore()
 const { isDark } = useTheme()
 const currentYear = new Date().getFullYear()
 
+/** loading | ready | partial（部分接口失败）| error（全部失败） */
+const pageLoadState = ref<'loading' | 'ready' | 'partial' | 'error'>('loading')
+
 onMounted(async () => {
-  await Promise.all([
+  pageLoadState.value = 'loading'
+  const results = await Promise.allSettled([
     recordStore.fetchHeatmap(currentYear),
     recordStore.fetchStats(),
     recordStore.fetchRecentRecords()
   ])
+  const rejected = results.filter(r => r.status === 'rejected').length
+  if (rejected >= 3) pageLoadState.value = 'error'
+  else if (rejected > 0) pageLoadState.value = 'partial'
+  else pageLoadState.value = 'ready'
 })
+
+const pageLoading = computed(() => pageLoadState.value === 'loading')
+const pagePartialError = computed(() => pageLoadState.value === 'partial' || pageLoadState.value === 'error')
 
 const todayStr = computed(() => {
   const d = new Date()
@@ -40,22 +53,60 @@ const greeting = computed(() => {
   return '晚上好！今天玩了什么呢？'
 })
 
-const streak = computed(() => {
-  const dateSet = new Set(
-    recordStore.heatmapData.filter(d => d.count > 0).map(d => d.date)
-  )
-  let count = 0
-  const d = new Date()
-  while (true) {
-    const s = d.toISOString().slice(0, 10)
-    if (dateSet.has(s)) { count++; d.setDate(d.getDate() - 1) }
-    else break
-  }
-  return count
-})
+/** 单次分析热力图：洞察 + 连续打卡 + 今日状态 */
+const heatmapAnalytics = computed(() =>
+  analyzeHeatmap(recordStore.heatmapData, localDateKey())
+)
+
+const streak = computed(() => heatmapAnalytics.value.streakFromToday)
 
 const totalHours = computed(() => (Number(recordStore.stats.totalMinutes) / 60 || 0).toFixed(1))
 const weekHours  = computed(() => (Number(recordStore.stats.weekMinutes)  / 60 || 0).toFixed(1))
+
+const recordCount = computed(() => Number(recordStore.stats.recordCount) || 0)
+
+const todayCheckedIn = computed(() => heatmapAnalytics.value.todayCheckedIn)
+
+const todayMinutesLabel = computed(() => formatMinutes(heatmapAnalytics.value.todayMinutes))
+
+const heatmapInsights = computed(() => {
+  const a = heatmapAnalytics.value
+  const empty = recordCount.value === 0 && !pageLoading.value
+  return [
+    {
+      key: 'active',
+      label: '本年活跃',
+      value: empty ? '—' : `${a.activeDayCount} 天`,
+      tone: 'pink' as const
+    },
+    {
+      key: 'streak',
+      label: '最长连续',
+      value: empty ? '—' : `${a.longestStreak} 天`,
+      tone: 'purple' as const
+    },
+    {
+      key: 'max',
+      label: '单日最高',
+      value: empty ? '—' : formatMinutes(a.maxDayMinutes),
+      tone: 'mint' as const
+    }
+  ]
+})
+
+const heatmapSeriesData = computed(() =>
+  recordStore.heatmapData.map(item => [item.date, item.totalMinutes || 0])
+)
+
+const missionProps = computed(() => ({
+  todayCheckedIn: todayCheckedIn.value,
+  todayMinutesLabel: todayMinutesLabel.value,
+  streak: streak.value,
+  weekHours: weekHours.value,
+  recordCount: recordCount.value,
+  loading: pageLoading.value,
+  partialError: pagePartialError.value
+}))
 
 /* Tick mark positions for the magical circle (JS-computed for accuracy) */
 function getTickStyle(n: number) {
@@ -91,24 +142,28 @@ const heatmapOption = computed(() => {
       }
     },
     visualMap: {
-      min: 0, max: 300,
+      min: 0,
+      max: 420,
       type: 'piecewise',
       orient: 'horizontal',
       left: 'center',
-      bottom: 4,
+      bottom: 6,
       pieces: [
-        { lte: 0,         color: emptyCell,                              label: '无'   },
-        { gt: 0,  lte: 30,  color: dark ? '#4A1560' : '#FFC2DF',        label: '≤30m' },
-        { gt: 30, lte: 60,  color: dark ? '#7B2D8B' : '#FF98C8',        label: '≤1h'  },
-        { gt: 60, lte: 120, color: dark ? '#BE4BAA' : '#FF72B0',        label: '≤2h'  },
-        { gt: 120,          color: '#FF6EB5',                            label: '2h+'  }
+        { lte: 0,           color: emptyCell,                       label: '无' },
+        { gt: 0,  lte: 30,   color: dark ? '#4A1560' : '#FFC2DF', label: '≤30分钟' },
+        { gt: 30, lte: 120,  color: dark ? '#6B2480' : '#FF98C8', label: '≤2小时' },
+        { gt: 120, lte: 240, color: dark ? '#9A3A9E' : '#FF72B0', label: '≤4小时' },
+        { gt: 240, lte: 420, color: dark ? '#BE4BAA' : '#FF4DA8', label: '≤7小时' },
+        { gt: 420,          color: '#FF6EB5',                       label: '>7小时' }
       ],
-      textStyle: { color: textColor, fontSize: 11 },
-      itemWidth: 14, itemHeight: 14, itemGap: 8
+      textStyle: { color: textColor, fontSize: 12, fontWeight: 600 },
+      itemWidth: 20,
+      itemHeight: 20,
+      itemGap: 12
     },
     calendar: {
-      top: 28, left: 36, right: 36, bottom: 52,
-      cellSize: ['auto', 14],
+      top: 28, left: 24, right: 24, bottom: 64,
+      cellSize: ['auto', 16],
       range: String(currentYear),
       itemStyle: { borderWidth: 3, borderColor: cellBorder, color: emptyCell },
       yearLabel: { show: false },
@@ -119,7 +174,7 @@ const heatmapOption = computed(() => {
     series: [{
       type: 'heatmap',
       coordinateSystem: 'calendar',
-      data: recordStore.heatmapData.map(item => [item.date, item.totalMinutes || 0]),
+      data: heatmapSeriesData.value,
       emphasis: { itemStyle: { shadowBlur: 12, shadowColor: 'rgba(255, 110, 181, 0.7)' } }
     }]
   }
@@ -165,7 +220,8 @@ const RANK_MEDALS = ['♛', '♜', '♝', '♞', '♟']
 </script>
 
 <template>
-  <div class="dashboard">
+  <div class="dashboard-shell">
+    <div class="dashboard-main">
 
     <!-- ========= TOP ROW: Hero + Stats ========= -->
     <div class="top-row">
@@ -286,7 +342,12 @@ const RANK_MEDALS = ['♛', '♜', '♝', '♞', '♟']
       </div>
     </div>
 
-    <!-- ========= ACTIVITY LOG (Heatmap) ========= -->
+    <!-- 今日任务（窄屏：排在热力图之前） -->
+    <div class="today-mission-inline">
+      <DashboardTodayMission v-bind="missionProps" />
+    </div>
+
+    <!-- ========= ACTIVITY LOG (Heatmap + Insights) ========= -->
     <div class="kawaii-card log-card">
       <div class="kawaii-header">
         <div class="kh-dots">
@@ -295,8 +356,32 @@ const RANK_MEDALS = ['♛', '♜', '♝', '♞', '♟']
         <span class="kh-title">✦ 活跃记录 · ACTIVITY LOG · {{ currentYear }}</span>
         <span class="kh-badge">热力图</span>
       </div>
-      <div class="log-body">
-        <v-chart :option="heatmapOption" autoresize style="height: 200px;" />
+      <div class="log-split">
+        <div class="log-chart">
+          <v-chart
+            :option="heatmapOption"
+            autoresize
+            :loading="pageLoading"
+            style="height: 236px; width: 100%;"
+          />
+        </div>
+        <aside class="log-insights" aria-label="本年游玩洞察">
+          <div
+            v-for="item in heatmapInsights"
+            :key="item.key"
+            class="insight-card"
+            :class="item.tone"
+          >
+            <span class="insight-label">{{ item.label }}</span>
+            <span class="insight-value">{{ item.value }}</span>
+          </div>
+          <p
+            v-if="recordCount === 0 && !pageLoading"
+            class="insight-hint"
+          >
+            打卡后自动生成
+          </p>
+        </aside>
       </div>
     </div>
 
@@ -317,7 +402,7 @@ const RANK_MEDALS = ['♛', '♜', '♝', '♞', '♟']
           <div v-for="(g, idx) in topGamesList" :key="idx" class="game-row">
             <span class="rank-medal" :style="{ color: RANK_COLORS[idx] }">{{ RANK_MEDALS[idx] }}</span>
             <div class="game-img">
-              <img v-if="g.icon" :src="g.icon" alt="" />
+              <img v-if="g.icon" :src="g.icon" alt="" loading="lazy" decoding="async" />
               <span v-else class="img-fb">🎮</span>
             </div>
             <div class="game-info">
@@ -338,7 +423,7 @@ const RANK_MEDALS = ['♛', '♜', '♝', '♞', '♟']
       </div>
 
       <!-- Recent Records -->
-      <div class="kawaii-card">
+      <div id="recent-log" class="kawaii-card">
         <div class="kawaii-header simple">
           <div>
             <div class="kh-eyebrow">✦ LOG</div>
@@ -355,7 +440,7 @@ const RANK_MEDALS = ['♛', '♜', '♝', '♞', '♟']
             </div>
             <div class="tl-card">
               <div class="tl-thumb">
-                <img v-if="r.gameIcon" :src="r.gameIcon" alt="" />
+                <img v-if="r.gameIcon" :src="r.gameIcon" alt="" loading="lazy" decoding="async" />
                 <span v-else>🎮</span>
               </div>
               <div class="tl-info">
@@ -373,17 +458,66 @@ const RANK_MEDALS = ['♛', '♜', '♝', '♞', '♟']
       </div>
 
     </div>
-  </div>
+
+    </div><!-- /.dashboard-main -->
+
+    <aside class="dashboard-rail" aria-label="今日任务与快捷操作">
+      <DashboardTodayMission v-bind="missionProps" />
+    </aside>
+  </div><!-- /.dashboard-shell -->
 </template>
 
 <style lang="scss" scoped>
-/* ======= Dashboard root ======= */
-.dashboard {
+/* ======= Dashboard shell（主栏 + 粘性侧栏） ======= */
+.dashboard-shell {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  width: 100%;
+  animation: fadeSlideIn 0.5s ease both;
+}
+
+.dashboard-main {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 1400px;
-  animation: fadeSlideIn 0.5s ease both;
+}
+
+.dashboard-rail {
+  width: 300px;
+  min-width: 280px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.today-mission-inline {
+  display: none;
+}
+
+@media (max-width: 1099px) {
+  .dashboard-shell {
+    flex-direction: column;
+  }
+
+  .dashboard-rail {
+    display: none;
+  }
+
+  .today-mission-inline {
+    display: block;
+  }
+}
+
+@media (max-width: 959px) {
+  .dashboard-rail {
+    display: none;
+  }
 }
 
 /* ======= Top Row ======= */
@@ -940,8 +1074,110 @@ const RANK_MEDALS = ['♛', '♜', '♝', '♞', '♟']
   &:hover { color: var(--accent); }
 }
 
-.log-body {
-  padding: 10px 8px 4px;
+.log-split {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  padding: 10px 14px 14px;
+
+  @media (max-width: 959px) {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+.log-chart {
+  flex: 1;
+  min-width: 0;
+}
+
+.log-insights {
+  width: 240px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+
+  @media (max-width: 959px) {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+  }
+}
+
+.insight-card {
+  border-radius: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  transition: transform var(--transition-fast), border-color var(--transition-fast);
+
+  @media (max-width: 959px) {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &:hover {
+    transform: scale(1.02);
+    border-color: var(--border-accent);
+  }
+
+  &.pink {
+    border-color: rgba(255, 110, 181, 0.22);
+    .insight-value { color: var(--accent); }
+  }
+
+  &.purple {
+    border-color: rgba(167, 139, 250, 0.22);
+    .insight-value { color: var(--cyan); }
+  }
+
+  &.mint {
+    border-color: rgba(110, 231, 183, 0.22);
+    .insight-value { color: var(--emerald); }
+  }
+}
+
+.insight-label {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.insight-value {
+  font-family: var(--font-hero);
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.insight-hint {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: center;
+  margin: 0;
+  width: 100%;
+
+  @media (min-width: 960px) {
+    margin-top: 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .insight-card:hover {
+    transform: none;
+  }
 }
 
 /* ======= Bottom Row ======= */

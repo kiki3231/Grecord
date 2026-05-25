@@ -2,9 +2,12 @@
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { loginApi, registerApi } from '../api/auth'
+import { useUserStore } from '@/stores/user'
+import BrandLogo from '@/components/brand/BrandLogo.vue'
 
 const router = useRouter()
 const route = useRoute()
+const userStore = useUserStore()
 // 登录相关状态
 const username = ref('')
 const password = ref('')
@@ -59,8 +62,9 @@ async function onSubmit() {
             password: password.value
         })
         if (res.code === 200 && res.data?.token) {
-            localStorage.setItem('token', res.data.token)
-            const redirect = (route.query.redirect as string) || '/' 
+            userStore.setToken(res.data.token)
+            await userStore.fetchUserInfo()
+            const redirect = (route.query.redirect as string) || '/'
             router.push(redirect)
         } else {
             error.value = res.msg || '登录失败'
@@ -180,6 +184,7 @@ function getVerificationCode() {
         <div class="login-card">
             <!-- 品牌标题 -->
             <div class="brand-title">
+                <BrandLogo :size="52" class="brand-title-logo" />
                 <h1>GRecord</h1>
                 <p class="slogan">记录游戏精彩瞬间，分享游戏快乐体验</p>
             </div>
@@ -190,7 +195,7 @@ function getVerificationCode() {
                 <div class="qrcode-login">
                     <!-- G动画状态 -->
                     <div class="g-animation">
-                        <div class="g-icon">G</div>
+                        <BrandLogo :size="120" class="pad-logo-spin" />
                         <div class="g-animation-text">扫码登录</div>
                     </div>
                     
@@ -466,6 +471,13 @@ function getVerificationCode() {
       text-align: center;
       padding: 20px 0;
       border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      .brand-title-logo {
+        margin-bottom: 12px;
+      }
 
       h1 {
         font-size: 28px;
@@ -512,20 +524,13 @@ function getVerificationCode() {
           opacity: 1;
           z-index: 10;
 
-          .g-icon {
-            width: 120px;
-            height: 120px;
-            background: linear-gradient(135deg, #1890ff, #40a9ff);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 60px;
-            font-weight: bold;
-            color: #fff;
-            box-shadow: 0 8px 24px rgba(24, 144, 255, 0.4);
-            animation: gRotate 3s ease-in-out infinite;
+          .pad-logo-spin {
             margin-bottom: 20px;
+
+            :deep(.brand-logo__orb) {
+              box-shadow: 0 8px 28px rgba(255, 110, 181, 0.45);
+              animation: gRotate 3s ease-in-out infinite;
+            }
           }
 
           .g-animation-text {

@@ -1,10 +1,19 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
 import { useGameStore, type Game } from '@/stores/game'
 import { useRecordStore } from '@/stores/record'
+import CheckInRail from '@/components/checkin/CheckInRail.vue'
+import {
+  buildQuickPicks,
+  buildGameHistory,
+  formatPlayMinutes
+} from '@/utils/checkinRecords'
 
 const gameStore = useGameStore()
 const recordStore = useRecordStore()
+
+const railLoading = ref(true)
+const railError = ref(false)
 
 const keyword = ref('')
 const selectedGame = ref<Game | null>(null)
@@ -17,10 +26,72 @@ const notes = ref('')
 const showSuccess = ref(false)
 const submitError = ref('')
 
+/** 快捷选游戏 / 下拉点选时写入 keyword，不触发搜索请求 */
+const suppressKeywordSearch = ref(false)
+
+onMounted(async () => {
+  railLoading.value = true
+  railError.value = false
+  const ok = await recordStore.fetchRecentRecords()
+  railError.value = !ok
+  railLoading.value = false
+})
+
+const quickPicks = computed(() => buildQuickPicks(recordStore.recentRecords, 5))
+
+const gameHistory = computed(() => {
+  if (!selectedGame.value) return null
+  return buildGameHistory(recordStore.recentRecords, selectedGame.value.id)
+})
+
+const previewMinutesLabel = computed(() => {
+  const total = Math.max(0, (hours.value || 0) * 60 + (minutes.value || 0))
+  return formatPlayMinutes(total)
+})
+
+const railProps = computed(() => ({
+  quickPicks: quickPicks.value,
+  selectedGame: selectedGame.value,
+  previewMinutesLabel: previewMinutesLabel.value,
+  previewRating: rating.value,
+  previewRatingLabel: ratingLabel.value,
+  previewStatus: status.value,
+  previewNotes: notes.value,
+  gameHistory: gameHistory.value,
+  loading: railLoading.value,
+  railError: railError.value,
+  disabled: recordStore.loading
+}))
+
+function pickQuickGame(game: Game) {
+  if (recordStore.loading) return
+  selectGame(game)
+  submitError.value = ''
+}
+
 let searchTimer: ReturnType<typeof setTimeout> | null = null
+
+function cancelPendingSearch() {
+  if (searchTimer) {
+    clearTimeout(searchTimer)
+    searchTimer = null
+  }
+}
+
 watch(keyword, (val) => {
-  if (searchTimer) clearTimeout(searchTimer)
-  if (!val.trim()) { showResults.value = false; return }
+  if (suppressKeywordSearch.value) {
+    suppressKeywordSearch.value = false
+    return
+  }
+  if (selectedGame.value && val.trim() !== selectedGame.value.name) {
+    selectedGame.value = null
+  }
+  cancelPendingSearch()
+  if (!val.trim()) {
+    showResults.value = false
+    gameStore.searchResults = []
+    return
+  }
   searchTimer = setTimeout(() => {
     gameStore.searchGames(val)
     showResults.value = true
@@ -28,14 +99,25 @@ watch(keyword, (val) => {
 })
 
 function selectGame(game: Game) {
+  cancelPendingSearch()
+  suppressKeywordSearch.value = true
   selectedGame.value = game
   keyword.value = game.name
   showResults.value = false
+  gameStore.searchResults = []
+}
+
+function onSearchFocus() {
+  if (selectedGame.value) return
+  if (keyword.value.trim()) showResults.value = true
 }
 
 function clearSelection() {
+  cancelPendingSearch()
   selectedGame.value = null
   keyword.value = ''
+  showResults.value = false
+  gameStore.searchResults = []
 }
 
 async function submit() {
@@ -54,6 +136,7 @@ async function submit() {
 
   if (res && res.code === 200) {
     showSuccess.value = true
+    await recordStore.fetchRecentRecords()
     setTimeout(() => {
       showSuccess.value = false
       selectedGame.value = null
@@ -87,7 +170,7 @@ const ratingLabel = computed(() => {
 </script>
 
 <template>
-  <div class="checkin-page">
+  <div class="checkin-shell">
 
     <!-- ── Success overlay ── -->
     <Transition name="success-fade">
@@ -105,11 +188,17 @@ const ratingLabel = computed(() => {
       </div>
     </Transition>
 
+    <div class="checkin-main">
     <!-- ── Page header ── -->
     <div class="page-header">
       <span class="page-eyebrow">✦ CHECK IN</span>
       <h1 class="page-title">今日打卡</h1>
       <p class="page-sub">记录你今天的游戏旅程</p>
+    </div>
+
+    <!-- 窄屏：辅助栏在表单前 -->
+    <div class="checkin-rail-inline">
+      <CheckInRail v-bind="railProps" @pick="pickQuickGame" />
     </div>
 
     <!-- ── Form card ── -->
@@ -131,7 +220,7 @@ const ratingLabel = computed(() => {
               v-model="keyword"
               class="search-input"
               placeholder="搜索游戏名称…"
-              @focus="keyword.trim() && (showResults = true)"
+              @focus="onSearchFocus"
               autocomplete="off"
             />
             <button v-if="selectedGame || keyword" class="clear-btn" type="button" @click="clearSelection">
@@ -309,17 +398,64 @@ const ratingLabel = computed(() => {
       </button>
 
     </div>
-  </div>
+    </div><!-- /.checkin-main -->
+
+    <aside class="checkin-rail" aria-label="打卡辅助信息">
+      <CheckInRail v-bind="railProps" @pick="pickQuickGame" />
+    </aside>
+  </div><!-- /.checkin-shell -->
 </template>
 
 <style lang="scss" scoped>
-/* ===== Root ===== */
-.checkin-page {
-  max-width: 680px;
+/* ===== Shell：主表单 + 粘性侧栏 ===== */
+.checkin-shell {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  width: 100%;
+  animation: ci-in 0.4s ease both;
+}
+
+.checkin-main {
+  flex: 1;
+  min-width: 0;
+  max-width: 720px;
   display: flex;
   flex-direction: column;
   gap: 24px;
-  animation: ci-in 0.4s ease both;
+}
+
+.checkin-rail {
+  width: 300px;
+  min-width: 280px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.checkin-rail-inline {
+  display: none;
+}
+
+@media (max-width: 1099px) {
+  .checkin-shell {
+    flex-direction: column;
+  }
+
+  .checkin-rail {
+    display: none;
+  }
+
+  .checkin-rail-inline {
+    display: block;
+  }
+
+  .checkin-main {
+    max-width: none;
+  }
 }
 
 @keyframes ci-in {

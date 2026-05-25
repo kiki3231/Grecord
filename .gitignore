@@ -63,6 +63,9 @@ env/
 **/game_scrapy/*.log
 
 # ──────────────── 项目本地 / 敏感配置 ────────────────
+# Cursor / 本地工具锁文件
+skills-lock.json
+
 # 临时脚本与本地工具配置
 .commit_msg.txt
 *.tmp
@@ -71,6 +74,9 @@ env/
 # 本地化的 Spring 配置（如有则不入库，模板见 application.yml）
 backend/src/main/resources/application-local.yml
 backend/src/main/resources/application-secret.yml
+
+# 用户上传头像（运行时写入 data/avatar）
+data/avatar/
 
 # ──────────────── 不入库的大文件 / 二进制 ────────────────
 *.zip

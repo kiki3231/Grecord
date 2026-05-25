@@ -31,10 +31,17 @@ export const useRecordStore = defineStore('record', () => {
     }
   }
 
-  async function fetchRecentRecords() {
-    const res = await getRecordsWithGameApi()
-    if (res.code === 200) {
-      recentRecords.value = res.data
+  /** @returns 是否成功拉取到列表 */
+  async function fetchRecentRecords(): Promise<boolean> {
+    try {
+      const res = await getRecordsWithGameApi()
+      if (res.code === 200) {
+        recentRecords.value = Array.isArray(res.data) ? res.data : []
+        return true
+      }
+      return false
+    } catch {
+      return false
     }
   }
 

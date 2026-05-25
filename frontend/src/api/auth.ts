@@ -33,12 +33,8 @@ export async function updateUserInfoApi(payload: {
   return data
 }
 
-// 上传头像
+// 上传头像（勿手动设置 Content-Type，否则 multipart 缺少 boundary 会导致后端收不到文件）
 export async function uploadAvatarApi(payload: FormData) {
-  const { data } = await http.post('/user/avatar', payload, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  })
+  const { data } = await http.post('/user/avatar', payload)
   return data
 }

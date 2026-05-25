@@ -2,6 +2,7 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import Login from '@/views/Login.vue'
 import Register from '@/views/Register.vue'
 import AppLayout from '@/components/AppLayout.vue'
+import { useUserStore } from '@/stores/user'
 
 const routes: RouteRecordRaw[] = [
   { path: '/login', name: 'login', component: Login, meta: { public: true } },
@@ -33,15 +34,20 @@ function isTokenExpired(token: string): boolean {
   }
 }
 
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const token = localStorage.getItem('token')
   if (!to.meta.public) {
     if (!token || isTokenExpired(token)) {
       localStorage.removeItem('token')
+      useUserStore().logout()
       next({ path: '/login', query: { redirect: to.fullPath } })
-    } else {
-      next()
+      return
     }
+    const userStore = useUserStore()
+    if (!userStore.user.id) {
+      await userStore.fetchUserInfo()
+    }
+    next()
   } else {
     next()
   }
