@@ -1,0 +1,45 @@
+# 默认按文件类型自动判定文本/二进制；文本统一用 LF 存储，避免 CRLF/LF 噪声
+* text=auto eol=lf
+
+# Windows 专属脚本保留 CRLF
+*.bat       text eol=crlf
+*.cmd       text eol=crlf
+*.ps1       text eol=crlf
+
+# 源代码强制按 LF 存储
+*.java      text eol=lf
+*.kt        text eol=lf
+*.xml       text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.properties text eol=lf
+*.sql       text eol=lf
+*.js        text eol=lf
+*.ts        text eol=lf
+*.tsx       text eol=lf
+*.jsx       text eol=lf
+*.vue       text eol=lf
+*.json      text eol=lf
+*.scss      text eol=lf
+*.css       text eol=lf
+*.html      text eol=lf
+*.md        text eol=lf
+readme.md   text eol=lf working-tree-encoding=UTF-8
+*.py        text eol=lf
+
+# 二进制资源，跳过文本归一化与 diff
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.ico       binary
+*.webp      binary
+*.pdf       binary
+*.zip       binary
+*.jar       binary
+*.class     binary
+
+# GitHub 语言统计：忽略生成产物与第三方/抓取数据
+frontend/package-lock.json      linguist-generated=true
+游戏信息爬取/游戏数据*.txt        linguist-vendored=true
+backend/src/main/resources/sql/* linguist-detectable=false

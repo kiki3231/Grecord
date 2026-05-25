@@ -1,0 +1,45 @@
+mybatis-plus:
+  typeAliasesPackage: com.ma.**.entity
+  mapperLocations: classpath*:mapper/**/*Mapper.xml
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  datasource:
+    url: jdbc:mysql://${DB_HOST:127.0.0.1}:${DB_PORT:3306}/${DB_NAME:grecord}?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:123456}
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 200MB
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      database: ${REDIS_DB:0}
+      password: ${REDIS_PASSWORD:}
+      timeout: 10s
+      lettuce:
+        pool:
+          min-idle: 0
+          max-idle: 8
+          max-active: 8
+          max-wait: -1ms
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+
+token:
+  header: Authorization
+  secret: ${JWT_SECRET:abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz123dsfjsaoi3121298312}
+  expireTime: ${JWT_EXPIRE_MINUTES:20160}
+
+avatar:
+  # 与 WebMvc 静态映射共用同一目录，上传后立即可访问（勿用 target/classes，避免重启丢失）
+  upload.path: D:/GRecord/data/avatar
+  access.path: /avatar

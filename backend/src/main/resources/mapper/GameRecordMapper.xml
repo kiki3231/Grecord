@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ma.grecode.mapper.GameRecordMapper">
+
+    <resultMap id="BaseResultMap" type="com.ma.grecode.entity.GameRecord">
+            <id property="id" column="id" />
+            <result property="userId" column="user_id" />
+            <result property="gameId" column="game_id" />
+            <result property="recordDate" column="record_date" />
+            <result property="playTime" column="play_time" />
+            <result property="achievements" column="achievements" />
+            <result property="notes" column="notes" />
+            <result property="rating" column="rating" />
+            <result property="status" column="status" />
+            <result property="createBy" column="create_by" />
+            <result property="updateBy" column="update_by" />
+            <result property="createTime" column="create_time" />
+            <result property="updateTime" column="update_time" />
+            <result property="isDelete" column="is_delete" />
+    </resultMap>
+
+    <resultMap id="RecordWithGame" type="com.ma.grecode.entity.GameRecord" extends="BaseResultMap">
+        <association property="game" javaType="com.ma.grecode.entity.Game">
+            <id property="id" column="g_id" />
+            <result property="name" column="g_name" />
+            <result property="icon" column="g_icon" />
+            <result property="platforms" column="g_platforms" />
+            <result property="gameTypes" column="g_game_types" />
+        </association>
+    </resultMap>
+
+    <select id="selectRecordWithGame" resultMap="RecordWithGame">
+        SELECT r.*, g.id as g_id, g.name as g_name, g.icon as g_icon,
+               g.platforms as g_platforms, g.game_types as g_game_types
+        FROM game_record r
+        LEFT JOIN game g ON r.game_id = g.id
+        WHERE r.user_id = #{userId} AND r.is_delete = 0
+        ORDER BY r.record_date DESC, r.id DESC
+    </select>
+
+    <select id="selectHeatmapData" resultType="java.util.Map">
+        SELECT DATE(record_date) as date,
+               COUNT(*) as count,
+               SUM(play_time) as totalMinutes
+        FROM game_record
+        WHERE user_id = #{userId}
+          AND YEAR(record_date) = #{year}
+          AND is_delete = 0
+        GROUP BY DATE(record_date)
+    </select>
+
+    <select id="selectUserStats" resultType="java.util.Map">
+        SELECT
+            COALESCE(SUM(play_time), 0) as totalMinutes,
+            COUNT(DISTINCT game_id) as gameCount,
+            COUNT(*) as recordCount,
+            COALESCE(SUM(CASE WHEN record_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN play_time ELSE 0 END), 0) as weekMinutes,
+            COALESCE(SUM(CASE WHEN YEAR(record_date) = YEAR(CURDATE()) AND MONTH(record_date) = MONTH(CURDATE()) THEN play_time ELSE 0 END), 0) as monthMinutes
+        FROM game_record
+        WHERE user_id = #{userId} AND is_delete = 0
+    </select>
+
+    <select id="selectTopGames" resultType="java.util.Map">
+        SELECT g.id, g.name, g.icon, SUM(r.play_time) as totalMinutes, COUNT(*) as playCount
+        FROM game_record r
+        LEFT JOIN game g ON r.game_id = g.id
+        WHERE r.user_id = #{userId} AND r.is_delete = 0
+        GROUP BY g.id, g.name, g.icon
+        ORDER BY totalMinutes DESC
+        LIMIT #{limit}
+    </select>
+
+    <sql id="Base_Column_List">
+        id, user_id, game_id, record_date, play_time, achievements,
+        notes, rating, status, create_by, update_by, create_time, update_time, is_delete
+    </sql>
+</mapper>

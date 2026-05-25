@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ma.grecode.mapper.GameBacklogMapper">
+
+    <resultMap id="BaseResultMap" type="com.ma.grecode.entity.GameBacklog">
+            <id property="id" column="id" />
+            <result property="userId" column="user_id" />
+            <result property="gameId" column="game_id" />
+            <result property="status" column="status" />
+            <result property="priority" column="priority" />
+            <result property="sortOrder" column="sort_order" />
+            <result property="notes" column="notes" />
+            <result property="startedDate" column="started_date" />
+            <result property="completedDate" column="completed_date" />
+            <result property="createBy" column="create_by" />
+            <result property="updateBy" column="update_by" />
+            <result property="createTime" column="create_time" />
+            <result property="updateTime" column="update_time" />
+            <result property="isDelete" column="is_delete" />
+    </resultMap>
+
+    <!-- autoMapping=false：Game 与 GameBacklog 都有 id/status/create_time/is_delete 等同名列，
+         必须关闭自动映射并显式声明每一列，否则 association 会被 backlog 列污染 -->
+    <resultMap id="BacklogWithGame" type="com.ma.grecode.entity.GameBacklog" autoMapping="false">
+        <id     property="id"            column="b_id" />
+        <result property="userId"        column="b_user_id" />
+        <result property="gameId"        column="b_game_id" />
+        <result property="status"        column="b_status" />
+        <result property="priority"      column="b_priority" />
+        <result property="sortOrder"     column="b_sort_order" />
+        <result property="notes"         column="b_notes" />
+        <result property="startedDate"   column="b_started_date" />
+        <result property="completedDate" column="b_completed_date" />
+        <result property="createBy"      column="b_create_by" />
+        <result property="updateBy"      column="b_update_by" />
+        <result property="createTime"    column="b_create_time" />
+        <result property="updateTime"    column="b_update_time" />
+        <result property="isDelete"      column="b_is_delete" />
+        <association property="game" javaType="com.ma.grecode.entity.Game" autoMapping="false">
+            <id     property="id"        column="g_id" />
+            <result property="name"      column="g_name" />
+            <result property="icon"      column="g_icon" />
+            <result property="platforms" column="g_platforms" />
+            <result property="gameTypes" column="g_game_types" />
+            <result property="rating"    column="g_rating" />
+        </association>
+    </resultMap>
+
+    <select id="selectBacklogWithGame" resultMap="BacklogWithGame">
+        SELECT
+            b.id             AS b_id,
+            b.user_id        AS b_user_id,
+            b.game_id        AS b_game_id,
+            b.status         AS b_status,
+            b.priority       AS b_priority,
+            b.sort_order     AS b_sort_order,
+            b.notes          AS b_notes,
+            b.started_date   AS b_started_date,
+            b.completed_date AS b_completed_date,
+            b.create_by      AS b_create_by,
+            b.update_by      AS b_update_by,
+            b.create_time    AS b_create_time,
+            b.update_time    AS b_update_time,
+            b.is_delete      AS b_is_delete,
+            g.id             AS g_id,
+            g.name           AS g_name,
+            g.icon           AS g_icon,
+            g.platforms      AS g_platforms,
+            g.game_types     AS g_game_types,
+            g.rating         AS g_rating
+        FROM game_backlog b
+        LEFT JOIN game g ON b.game_id = g.id
+        WHERE b.user_id = #{userId} AND b.is_delete = 0
+        <if test="status != null">
+            AND b.status = #{status}
+        </if>
+        ORDER BY b.sort_order ASC, b.create_time DESC
+    </select>
+
+    <select id="countByStatus" resultType="java.util.Map">
+        SELECT status, COUNT(*) as count
+        FROM game_backlog
+        WHERE user_id = #{userId} AND is_delete = 0
+        GROUP BY status
+    </select>
+</mapper>
