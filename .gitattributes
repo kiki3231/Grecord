@@ -23,9 +23,8 @@
 *.scss      text eol=lf
 *.css       text eol=lf
 *.html      text eol=lf
-*.md        text eol=lf encoding=utf-8
-readme.md   text eol=lf encoding=utf-8
-README.md   text eol=lf encoding=utf-8
+*.md        text eol=lf
+readme.md   text eol=lf working-tree-encoding=UTF-8
 *.py        text eol=lf
 
 # 二进制资源，跳过文本归一化与 diff
