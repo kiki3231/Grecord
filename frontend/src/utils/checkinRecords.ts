@@ -1,4 +1,5 @@
 import type { Game } from '@/stores/game'
+import { displayGameName } from '@/utils/gameDisplay'
 
 export function formatPlayMinutes(mins: number): string {
   if (!mins || mins <= 0) return '0m'
@@ -33,6 +34,7 @@ function toGame(game: Record<string, unknown>, gameId: number): Game {
   return {
     id: gameId,
     name: String(game.name ?? ''),
+    nameZh: game.nameZh != null ? String(game.nameZh) : (game.name_zh != null ? String(game.name_zh) : undefined),
     description: String(game.description ?? ''),
     icon: String(game.icon ?? ''),
     platforms: String(game.platforms ?? ''),

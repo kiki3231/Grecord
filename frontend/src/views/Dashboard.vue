@@ -5,6 +5,7 @@ import { useUserStore } from '@/stores/user'
 import { useTheme } from '@/composables/useTheme'
 import DashboardTodayMission from '@/components/dashboard/DashboardTodayMission.vue'
 import { analyzeHeatmap, localDateKey } from '@/utils/heatmapAnalytics'
+import { displayGameName } from '@/utils/gameDisplay'
 import VChart from 'vue-echarts'
 import { use } from 'echarts/core'
 import { HeatmapChart } from 'echarts/charts'
@@ -184,7 +185,7 @@ const heatmapOption = computed(() => {
 const topGamesList = computed(() => {
   const games = recordStore.topGames.map(g => ({
     icon: String(g.icon || ''),
-    name: String(g.name || ''),
+    name: displayGameName(g as { name?: string; nameZh?: string | null }),
     totalMinutes: Number(g.totalMinutes || 0)
   }))
   const maxMins = games[0]?.totalMinutes || 1
@@ -197,7 +198,7 @@ const recentList = computed(() =>
     const game = r.game as Record<string, unknown> | undefined
     return {
       gameIcon: game ? String(game.icon || '') : '',
-      gameName: game ? String(game.name || '') : '未知游戏',
+      gameName: game ? displayGameName(game as { name?: string; nameZh?: string | null }) : '未知游戏',
       date: String(r.recordDate || '').slice(0, 10),
       playTime: Number(r.playTime || 0)
     }

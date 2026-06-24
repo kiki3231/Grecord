@@ -8,6 +8,7 @@ import {
   buildGameHistory,
   formatPlayMinutes
 } from '@/utils/checkinRecords'
+import { displayGameName, localizePlatform } from '@/utils/gameDisplay'
 
 const gameStore = useGameStore()
 const recordStore = useRecordStore()
@@ -83,7 +84,7 @@ watch(keyword, (val) => {
     suppressKeywordSearch.value = false
     return
   }
-  if (selectedGame.value && val.trim() !== selectedGame.value.name) {
+  if (selectedGame.value && val.trim() !== displayGameName(selectedGame.value)) {
     selectedGame.value = null
   }
   cancelPendingSearch()
@@ -102,7 +103,7 @@ function selectGame(game: Game) {
   cancelPendingSearch()
   suppressKeywordSearch.value = true
   selectedGame.value = game
-  keyword.value = game.name
+  keyword.value = displayGameName(game)
   showResults.value = false
   gameStore.searchResults = []
 }
@@ -246,13 +247,13 @@ const ratingLabel = computed(() => {
                 @click="selectGame(game)"
               >
                 <div class="si-thumb">
-                  <img v-if="game.icon" :src="game.icon" :alt="game.name" />
+                  <img v-if="game.icon" :src="game.icon" :alt="displayGameName(game)" />
                   <span v-else class="si-fb">🎮</span>
                 </div>
                 <div class="si-info">
-                  <div class="si-name">{{ game.name }}</div>
+                  <div class="si-name">{{ displayGameName(game) }}</div>
                   <div class="si-meta">
-                    <span v-if="game.platforms">{{ game.platforms.split(',')[0] }}</span>
+                    <span v-if="game.platforms">{{ localizePlatform(game.platforms.split(',')[0]!.trim()) }}</span>
                     <span v-if="game.gameTypes"> · {{ game.gameTypes.split(',')[0] }}</span>
                   </div>
                 </div>
@@ -276,13 +277,13 @@ const ratingLabel = computed(() => {
         <Transition name="selected-slide">
           <div v-if="selectedGame" class="selected-game">
             <div class="sg-thumb">
-              <img v-if="selectedGame.icon" :src="selectedGame.icon" :alt="selectedGame.name" />
+              <img v-if="selectedGame.icon" :src="selectedGame.icon" :alt="displayGameName(selectedGame)" />
               <span v-else>🎮</span>
             </div>
             <div class="sg-info">
-              <div class="sg-name">{{ selectedGame.name }}</div>
+              <div class="sg-name">{{ displayGameName(selectedGame) }}</div>
               <div class="sg-meta">
-                <span v-if="selectedGame.platforms">{{ selectedGame.platforms.split(',')[0] }}</span>
+                <span v-if="selectedGame.platforms">{{ localizePlatform(selectedGame.platforms.split(',')[0]!.trim()) }}</span>
                 <span v-if="selectedGame.rating"> · ⭐ {{ Number(selectedGame.rating).toFixed(1) }}</span>
               </div>
             </div>

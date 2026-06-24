@@ -46,6 +46,21 @@ public class Game {
     @TableField(value = "source")
     private String source;
 
+    @TableField(value = "external_provider")
+    private String externalProvider;
+
+    @TableField(value = "external_id")
+    private String externalId;
+
+    @TableField(value = "name_zh")
+    private String nameZh;
+
+    @TableField(value = "steam_appid")
+    private Integer steamAppid;
+
+    @TableField(value = "rawg_updated_at")
+    private Date rawgUpdatedAt;
+
     @TableField(value = "status")
     private Integer status;
 

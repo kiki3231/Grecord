@@ -27,6 +27,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, Game> implements Ga
             String kw = keyword.trim();
             wrapper.and(w -> w
                 .like(Game::getName, kw)
+                .or().like(Game::getNameZh, kw)
                 .or().like(Game::getGameTypes, kw)
                 .or().like(Game::getPlatforms, kw)
                 .or().like(Game::getDeveloper, kw)
@@ -85,10 +86,6 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, Game> implements Ga
         return page(new Page<>(page, size), wrapper);
     }
 
-    /**
-     * 把 game 表里所有未删除游戏的 platforms / game_types 拆开来按频次聚合。
-     * 这样筛选 chip 始终反映"当前真实可选项"。
-     */
     @Override
     public Map<String, Object> getFilters() {
         LambdaQueryWrapper<Game> wrapper = new LambdaQueryWrapper<>();
