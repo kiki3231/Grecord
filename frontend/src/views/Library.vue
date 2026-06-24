@@ -4,6 +4,7 @@ import { useGameStore } from '@/stores/game'
 import type { Game } from '@/stores/game'
 import { useBacklogStore } from '@/stores/backlog'
 import type { SortKey } from '@/api/game'
+import { displayGameName, localizeGameType, localizePlatform } from '@/utils/gameDisplay'
 
 const gameStore = useGameStore()
 const backlogStore = useBacklogStore()
@@ -37,7 +38,7 @@ async function onToggleWish(game: Game, ev: MouseEvent) {
   const prevStatus = backlogStore.getBacklogStatus(game.id)
   const res = await backlogStore.toggleWish(game.id, {
     id: game.id,
-    name: game.name,
+    name: displayGameName(game),
     icon: game.icon,
     platforms: game.platforms,
     gameTypes: game.gameTypes,
@@ -53,7 +54,7 @@ async function onToggleWish(game: Game, ev: MouseEvent) {
     } else {
       toastType = 'switch'
     }
-    showToast(toastType, game.name, prevStatus ?? undefined)
+    showToast(toastType, displayGameName(game), prevStatus ?? undefined)
   } else if (res.code === 409) {
     // 后端已存在(可能跨标签同步) → 只刷新 wish 映射，避免动 Backlog 页 tab 下的 items
     await backlogStore.refreshWishMap()
@@ -150,14 +151,15 @@ function formatRating(r: number | null) {
 }
 function getPlatforms(p: string) {
   if (!p) return []
-  return p.split(',').map(s => s.trim()).filter(Boolean).slice(0, 3)
+  return p.split(',').map(s => localizePlatform(s.trim())).filter(Boolean).slice(0, 3)
 }
 function getTypes(t: string) {
   if (!t) return []
-  return t.split(',').map(s => s.trim()).filter(Boolean).slice(0, 2)
+  return t.split(',').map(s => localizeGameType(s.trim())).filter(Boolean).slice(0, 2)
 }
-function getInitial(name: string) {
-  return name ? name.charAt(0).toUpperCase() : '?'
+function getInitial(game: Game) {
+  const label = displayGameName(game)
+  return label ? label.charAt(0).toUpperCase() : '?'
 }
 
 const gridRef = ref<HTMLElement | null>(null)
@@ -347,12 +349,12 @@ watch(() => gameStore.libraryGames.length, () => initObserver())
           <img
             v-if="game.icon"
             :src="game.icon"
-            :alt="game.name"
+            :alt="displayGameName(game)"
             loading="lazy"
             class="cover-img"
           />
           <div v-else class="cover-fb">
-            <span class="fb-initial">{{ getInitial(game.name) }}</span>
+            <span class="fb-initial">{{ getInitial(game) }}</span>
           </div>
 
           <!-- ♥ Wishlist toggle (top-left)。红心仅当 status===0 时亮起 -->
@@ -410,7 +412,7 @@ watch(() => gameStore.libraryGames.length, () => initObserver())
         </div>
 
         <div class="card-body">
-          <div class="card-name" :title="game.name">{{ game.name }}</div>
+          <div class="card-name" :title="displayGameName(game)">{{ displayGameName(game) }}</div>
           <div class="card-platforms">
             <span
               v-for="p in getPlatforms(game.platforms)"
@@ -467,6 +469,12 @@ watch(() => gameStore.libraryGames.length, () => initObserver())
         </span>
       </div>
     </Transition>
+
+    <p class="rawg-attribution">
+      游戏数据由
+      <a href="https://rawg.io" target="_blank" rel="noopener noreferrer">RAWG</a>
+      提供
+    </p>
 
   </div>
 </template>
@@ -1351,5 +1359,17 @@ watch(() => gameStore.libraryGames.length, () => initObserver())
   letter-spacing: 0.1em;
   color: var(--text-muted);
   opacity: 0.7;
+}
+
+.rawg-attribution {
+  margin: 2rem 0 1rem;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  a {
+    color: var(--cyan);
+    text-decoration: none;
+    &:hover { text-decoration: underline; }
+  }
 }
 </style>

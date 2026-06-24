@@ -3,6 +3,8 @@ mybatis-plus:
   mapperLocations: classpath*:mapper/**/*Mapper.xml
 
 spring:
+  config:
+    import: optional:classpath:application-local.yml
   main:
     allow-bean-definition-overriding: true
   datasource:

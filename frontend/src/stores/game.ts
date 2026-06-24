@@ -11,6 +11,7 @@ import {
 export interface Game {
   id: number
   name: string
+  nameZh?: string | null
   description: string
   icon: string
   platforms: string

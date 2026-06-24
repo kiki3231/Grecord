@@ -2,6 +2,7 @@
 import type { Game } from '@/stores/game'
 import type { GameHistorySummary, QuickPickItem } from '@/utils/checkinRecords'
 import { formatPlayMinutes, STATUS_LABELS } from '@/utils/checkinRecords'
+import { displayGameName } from '@/utils/gameDisplay'
 
 defineProps<{
   quickPicks: QuickPickItem[]
@@ -52,14 +53,14 @@ const emit = defineEmits<{
               <img
                 v-if="item.game.icon"
                 :src="item.game.icon"
-                :alt="item.game.name"
+                :alt="displayGameName(item.game)"
                 loading="lazy"
                 decoding="async"
               />
               <span v-else>🎮</span>
             </div>
             <div class="qi-body">
-              <span class="qi-name">{{ item.game.name }}</span>
+              <span class="qi-name">{{ displayGameName(item.game) }}</span>
               <span class="qi-meta">{{ item.lastDate }} · {{ formatPlayMinutes(item.lastPlayTime) }}</span>
             </div>
           </button>
